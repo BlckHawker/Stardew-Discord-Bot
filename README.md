@@ -53,12 +53,21 @@ The Stardew Discord Bot helps automate community updates so moderators don't nee
 
 ### Setup Instructions
 
-```bash
-# Clone the repository from main branch
-git clone -b main https://github.com/BlckHawker/Stardew-Discord-Bot.git
 
-# Install dependencies
+1. Clone the repository from main branch
+```bash
+git clone -b main https://github.com/BlckHawker/Stardew-Discord-Bot.git
+```
+2. Install dependencies
+```bash
 npm install
+```
+3. Copy make a copy of `example.env` called `.env` and add the corresponding information. Keep the `""` around the information that has it.
+
+4. Run bot on local server
+
+```bash
+npm run start
 ```
 
 ---
