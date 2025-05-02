@@ -1,4 +1,5 @@
 require("dotenv").config();
+const Discord = require('discord.js');
 
 //Sends a message to a server channel
 //client - the client object
@@ -16,4 +17,14 @@ const sendDM = (client, content, id) => {
     client.users.send(id, content);
 }
 
-module.exports = { sendServerMessage, sendDM };
+//Creates a new Discord client instance
+//intents - 
+// partials - 
+const createClient = (indents, partials) => {
+    return new Discord.Client({
+        intents: indents,
+        partials: partials
+    })
+}
+
+module.exports = { sendServerMessage, sendDM, createClient };
