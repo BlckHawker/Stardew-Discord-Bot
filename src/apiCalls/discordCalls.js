@@ -24,4 +24,4 @@ const sendMessage = async (channel, content) => {
     return await channel.send(content);
 }
  
-module.exports = { getDiscordMessages, getDiscordChannel };
+module.exports = { getDiscordMessages, getDiscordChannel, sendMessage };
