@@ -1,6 +1,6 @@
 require("dotenv").config();
 const Discord = require('discord.js');
-const apiCalls = require("./apiCalls.js");
+const ICCCGithub = require("./apiCalls/ICCCGithub.js");
 const cron = require('cron');
 
 const { GatewayIntentBits, IntentsBitField, Partials } = Discord;
@@ -28,7 +28,7 @@ client.on("ready", (c) => {
 
     //every hour, check if there is a new ICC beta release
     const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
-        apiCalls.getLatestICCCBetaRelease(client);
+        ICCCGithub.getLatestICCCBetaRelease(client);
     });
 
     ICCCBetaTestReleaseJob.start();
