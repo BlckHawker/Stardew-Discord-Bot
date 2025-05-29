@@ -84,8 +84,4 @@ describe("getLatestICCCBetaRelease", () => {
           expect(typeof job.stop).toBe("function");
         });
       });
-
-
-
-
 })
