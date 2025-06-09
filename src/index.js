@@ -2,6 +2,8 @@ require("dotenv").config();
 const Discord = require('discord.js');
 const ICCCGithub = require("./apiCalls/ICCCGithub.js");
 const cron = require('cron');
+const youtube = require("./apiCalls/youtube.js");
+
 
 const { GatewayIntentBits, IntentsBitField, Partials } = Discord;
 
@@ -31,9 +33,15 @@ client.on("ready", (c) => {
         ICCCGithub.getLatestICCCBetaRelease(client);
     });
 
-
+    //every hour, check if a new youtube video release
+    const youtubeRelease = new cron.CronJob('0 */1 * * *', () => {
+        youtube.sendLatestVideoMessage(client);
+    });
 
     ICCCBetaTestReleaseJob.start();
+    youtubeRelease.start();
+
+    
 });
 
 client.login(process.env.DISCORD_TOKEN);

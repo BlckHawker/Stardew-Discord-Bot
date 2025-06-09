@@ -3,6 +3,7 @@ const { Octokit } = require("@octokit/rest");
 const cron = require('cron');
 const Discord = require('discord.js');
 const discordCalls = require("./discordCalls.js");
+const utils = require("../utils.js");
 
 /**
  * Sends a message to a Discord channel when a new ICC beta release is available.
@@ -10,13 +11,9 @@ const discordCalls = require("./discordCalls.js");
  */
 const getLatestICCCBetaRelease = async (client) => {
 
-  console.log("Getting the latest ICC beta release...")
- 
-
-  
+  console.log(`${utils.getTimeStamp()} Getting the latest ICC beta release...`)
 
   const response = await fetchMostRecentRelease();
-  
 
   //if the status is not 200, don't do anything
   if(response.status !== 200) {
@@ -29,7 +26,7 @@ const getLatestICCCBetaRelease = async (client) => {
 
   //if the most release is a pre-release, don't do anything
   if(!mostRecentRelease.prerelease) {
-      //todo log this to some sort of discord channel
+
       console.error(`Most recent release is not a pre-release (id: ${mostRecentRelease.id})`)
       return;
   }
@@ -42,11 +39,11 @@ const getLatestICCCBetaRelease = async (client) => {
     
     const messages = await discordCalls.getDiscordMessages(notifsChannel, 100)
     .then(messages => {
-      //todo make sure to only check the messages sent by this bot
+      //make sure to only check the messages sent by this bot
       return messages.filter(m => m.author.id == process.env.CLIENT_ID).map(m => m.content);
     })
 
-    //todo check if any of the messages contain the release id
+    //check if any of the messages contain the release id
     const regex = new RegExp(String.raw`A new beta test build \(id: \`${mostRecentRelease.id}\`\) has been released.+`, 'g')
 
   //Otherwise, send a message to the channel with the release information
@@ -54,10 +51,10 @@ const getLatestICCCBetaRelease = async (client) => {
     //get the timestamp from a week from now to tell when the feedback will stop being collected
     const now = new Date();
     const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const timestamp = Math.floor(oneWeekFromNow.getTime() / 1000);
 
+    const timestamp = utils.convertIsoToDiscordTimestamp(oneWeekFromNow.toISOString(), "R");
 
-    const sentMessage = discordCalls.sendMessage(notifsChannel, `<@&${process.env.ICCC_BETA_TESTER_ROLE}> A new beta test build (id: \`${mostRecentRelease.id}\`) has been released. Feedback for this version will stop being collected <t:${timestamp}:R> in ${`<#${process.env.ICCC_BETA_TEST_CHANNEL_ID}>`}. Be sure to add the tag \`${mostRecentRelease.tag_name}\` in your message so developers know which version you're referring to.\n${mostRecentRelease.html_url}`);
+    const sentMessage = await discordCalls.sendMessage(notifsChannel, `<@&${process.env.ICCC_BETA_TESTER_ROLE}> A new beta test build (id: \`${mostRecentRelease.id}\`) has been released. Feedback for this version will stop being collected ${timestamp} in ${`<#${process.env.ICCC_BETA_TEST_CHANNEL_ID}>`}. Be sure to add the tag \`${mostRecentRelease.tag_name}\` in your message so developers know which version you're referring to.\n${mostRecentRelease.html_url}`);
 
     //send a message one week from now to remind people to stop giving feedback
     const seconds = oneWeekFromNow.getSeconds();
@@ -104,6 +101,7 @@ const getCronObject = (cronTime, action) => {
   return new cron.CronJob(cronTime, action)
 } 
 
+// Checks if at least one string in an array matches the specified regex 
 const isDuplicateRelease = (messages, regex) => {
   return messages.some(m => m.match(regex) !== null);
 }
@@ -111,5 +109,5 @@ const isDuplicateRelease = (messages, regex) => {
 
 
 
-module.exports = { getLatestICCCBetaRelease, isDuplicateRelease, getCronObject };
+module.exports = { getLatestICCCBetaRelease, getCronObject, isDuplicateRelease };
 

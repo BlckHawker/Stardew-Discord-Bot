@@ -50,6 +50,7 @@ The Stardew Discord Bot helps automate community updates so moderators don't nee
    - **dotenv** (`v16.4.7`)
    - **@octokit/rest** (`v18.12.0`)
    - **cron**: (`v4.3.0`)
+   - **node-fetch** (`v2.7.0`)
 
 ---
 

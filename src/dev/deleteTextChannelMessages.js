@@ -2,6 +2,7 @@ require("dotenv").config();
 const { ChannelType } = require('discord.js');
 const utils = require("../utils.js");
 
+const channelId = process.env.UPLOAD_NOTIFS_CHANNEL_ID; // the id of the discord channel where all messages will be deleted 
 (async () => {
     console.log("Delete script ran");
   
@@ -12,7 +13,7 @@ const utils = require("../utils.js");
     await new Promise((resolve) => {
       client.once("ready", async () => {
         // Delete all messages in the specified channel
-        await deleteAllMessagesInChannel(client, process.env.ICCC_BETA_TEST_RELEASE_NOTIFS_ID);
+        await deleteAllMessagesInChannel(client, channelId);
         resolve(); //says Promise is finished
       });
     });
