@@ -52,9 +52,9 @@ const getLatestICCCBetaRelease = async (client) => {
     const now = new Date();
     const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const timestamp = utils.convertIsoToDiscordTimestamp(oneWeekFromNow.toISOString());
+    const timestamp = utils.convertIsoToDiscordTimestamp(oneWeekFromNow.toISOString(), "R");
 
-    const sentMessage = await discordCalls.sendMessage(notifsChannel, `<@&${process.env.ICCC_BETA_TESTER_ROLE}> A new beta test build (id: \`${mostRecentRelease.id}\`) has been released. Feedback for this version will stop being collected <t:${timestamp}:R> in ${`<#${process.env.ICCC_BETA_TEST_CHANNEL_ID}>`}. Be sure to add the tag \`${mostRecentRelease.tag_name}\` in your message so developers know which version you're referring to.\n${mostRecentRelease.html_url}`);
+    const sentMessage = await discordCalls.sendMessage(notifsChannel, `<@&${process.env.ICCC_BETA_TESTER_ROLE}> A new beta test build (id: \`${mostRecentRelease.id}\`) has been released. Feedback for this version will stop being collected ${timestamp} in ${`<#${process.env.ICCC_BETA_TEST_CHANNEL_ID}>`}. Be sure to add the tag \`${mostRecentRelease.tag_name}\` in your message so developers know which version you're referring to.\n${mostRecentRelease.html_url}`);
 
     //send a message one week from now to remind people to stop giving feedback
     const seconds = oneWeekFromNow.getSeconds();
