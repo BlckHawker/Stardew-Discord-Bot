@@ -12,6 +12,8 @@ The Stardew Discord Bot helps automate community updates so moderators don't nee
 - YouTube uploads (Stardew-related and others)
 - Stardew beta builds
 - Stardew Nexus mods updates/releases
+![image](https://github.com/user-attachments/assets/61d1135c-7ed7-4cc3-8839-529577282c7f)
+<img width="827" alt="image" src="https://github.com/user-attachments/assets/0b4e8d3c-5195-48b4-a262-895183b95a3e" />
 
 ---
 
@@ -20,7 +22,6 @@ The Stardew Discord Bot helps automate community updates so moderators don't nee
 > Interested in seeing the bot in action or joining my journey in modding community?
 
 - **[Click here to join](https://discord.gg/mthtsCYy6d)**  
-- _Images of the bot in action coming soon!_
 
 ---
 
