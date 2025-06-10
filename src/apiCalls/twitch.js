@@ -11,14 +11,52 @@ const sendLatestStreamMessage = async () => {
     console.log(`[${utils.getTimeStamp()}] Getting the latest Twitch stream...`);
 
     
-    //todo check if hawker is streaming
-    cachedStreamObject = await getStream();
-    console.log(cachedStreamObject)
+    //check if hawker is streaming
+    let streamObject = await getStream();
+
+    //check if there were any problems with getting the stream
+    if(streamObject === null) {
+        console.error(`[${utils.getTimeStamp()}] Could not find live Hawker stream. Unable to send twitch message`)
+        return;
+    }
+
+    //todo check if the stream is stardew related
+    const stardewRelated = isStardewRelated(streamObject)
+
+
+}
+
+const isStardewRelated = (stream) => {
+    const keyword = "STARDEW";
+
+    //the stream is considered Stardew related if any of the following are true:
+
+    //if the title contains the word "STARDEW"
+    if(stream.title.toUpperCase().includes(keyword)) {
+        console.log(`[${utils.getTimeStamp()}] Stream is Stardew related because the title contains "STARDEW"`);
+        return true;
+    }
+
+     //If at least one of the tags contain "Stardew"
+    if(stream.tags.some(tag => tag.toUpperCase().includes(keyword))) {
+        console.log(`[${utils.getTimeStamp()}] Stream is Stardew related because at least one tag contains "STARDEW"`);
+        return true;
+    }
+
+    //If the game being played is Stardew Valley
+    if(stream.game_name.toUpperCase() === "STARDEW VALLEY") {
+        console.log(`[${utils.getTimeStamp()}] Stream is Stardew related because game is "Stardew Valley"`);
+        return true;
+    }
+
+    console.log(`[${utils.getTimeStamp()}] Stream is not Stardew related`);
+    return false;
+
 }
 
 //Gets the stream if Hawker is currently live 
 const getStream = async () => {
-    //todo figure out if the access token is expired,  if it is, get a new one, otherwise keep using current one
+    //todo figure out if the access token is expired, if it is, get a new one, otherwise keep using current one
     cachedTwitchTokenObject = await getTwitchTokenObject();
 
     if(cachedStreamObject === null) {
@@ -26,7 +64,7 @@ const getStream = async () => {
         return null;
     }
 
-    //todo get stream if hawker is live
+    //get stream if hawker is live
     let response = await fetch("https://api.twitch.tv/helix/streams?" 
         + new URLSearchParams({
             "user_id": process.env.TWITCH_USER_ID,
@@ -55,25 +93,9 @@ const getStream = async () => {
 
     console.log(`[${utils.getTimeStamp()}] Successfully got stream data`);
     return stream.data[0];
-
-    // var options = {
-    // 'method': 'GET',
-    // 'url': `https://api.twitch.tv/helix/streams?user_id=${process.env.TWITCH_USER_ID}`,
-    // 'headers': {
-    //     'Client-Id': process.env.TWITCH_CLIENT_ID,
-    //     'Authorization': `Bearer ${twitchAccessToken}`
-    // }
-    // };
-    // request(options, function (error, response) {
-    // if (error) {
-    //     //todo refactor this to log the error and return null
-    //     throw new Error(error);
-    // }
-    // console.log(response.body);
-    // });
 }
 
-//todo comment this so it makes more sense
+//Get the twitch token object used to use the twitch api
 const getTwitchTokenObject = async () => {
 
     let response = await fetch("https://id.twitch.tv/oauth2/token?" 
