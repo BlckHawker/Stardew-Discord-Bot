@@ -3,6 +3,9 @@ const Discord = require('discord.js');
 const ICCCGithub = require("./apiCalls/ICCCGithub.js");
 const cron = require('cron');
 const youtube = require("./apiCalls/youtube.js");
+const twitch = require("./apiCalls/twitch.js")
+
+
 
 
 const { GatewayIntentBits, IntentsBitField, Partials } = Discord;
@@ -24,22 +27,27 @@ const client = new Discord.Client({
     ]
 })
 
+
+
 // When the bot first initializes
 client.on("ready", (c) => {
     console.log(`${c.user.tag} is online`);
 
-    // every hour, check if there is a new ICC beta release
-    const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
-        ICCCGithub.getLatestICCCBetaRelease(client);
-    });
+    twitch.sendLatestStreamMessage()
 
-    //every hour, check if a new youtube video release
-    const youtubeRelease = new cron.CronJob('0 */1 * * *', () => {
-        youtube.sendLatestVideoMessage(client);
-    });
 
-    ICCCBetaTestReleaseJob.start();
-    youtubeRelease.start();
+    // // every hour, check if there is a new ICC beta release
+    // const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
+    //     ICCCGithub.getLatestICCCBetaRelease(client);
+    // });
+
+    // //every hour, check if a new youtube video release
+    // const youtubeRelease = new cron.CronJob('0 */1 * * *', () => {
+    //     youtube.sendLatestVideoMessage(client);
+    // });
+
+    // ICCCBetaTestReleaseJob.start();
+    // youtubeRelease.start();
 
     
 });
