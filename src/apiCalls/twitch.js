@@ -64,7 +64,7 @@ const sendLatestStreamMessage = async (client) => {
     const roleId = getCorrectRole(stardewRelated);
 
     //create the message to send to the notifs channel
-    const messageContent = `<@&${roleId}>\nHawker is live on twitch!\nStarted streaming at ${utils.convertIsoToDiscordTimestamp(streamObject.started_at)}\nTitle: **${streamObject.title}**\nWatch here: https://www.twitch.tv/${streamObject.user_login}\n(Stream id: \`${streamObject.id}\`)`
+    const messageContent = `<@&${roleId}>\nHawker is live on twitch!\nStarted streaming at ${utils.convertIsoToDiscordTimestamp(streamObject.started_at)}\nTitle: **${streamObject.title}**\nWatch here: https://www.twitch.tv/${streamObject.user_login}`
 
     //check if this stream has already been announced
     const oldNotifMessages = await discord.getDiscordMessages(notifsChannel);
