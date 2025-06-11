@@ -152,6 +152,12 @@ describe("getTwitchTokenObject", () => {
 });
 
 describe("getCorrectRole", () => {
-  //todo stardew role is pinged if true
-  //todo other role is pinged if false
+  test("stardew role is pinged if true", () => {
+    const results = twitch.getCorrectRole(true)
+    expect(results).toEqual(process.env.TWITCH_STARDEW_STREAM_ROLE)
+  })
+    test("other role is pinged if false", () => {
+    const results = twitch.getCorrectRole(false)
+    expect(results).toEqual(process.env.TWITCH_OTHER_STREAM_ROLE)
+  })
 });
