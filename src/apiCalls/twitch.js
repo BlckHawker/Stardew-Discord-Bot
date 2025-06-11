@@ -110,8 +110,30 @@ const isStardewRelated = (stream) => {
 
 //Gets the stream if Hawker is currently live 
 const getStream = async () => {
-    //todo figure out if the access token is expired, if it is, get a new one, otherwise keep using current one
-    cachedTwitchTokenObject = await getTwitchTokenObject();
+    //figure out if the access token is expired, if it is, get a new one, otherwise keep using current one
+    const minuteOffset = 5; // Refresh the token this many minutes before it actually expires to avoid using an expired token
+
+    if(cachedTwitchTokenObject !== null) {
+        console.log(`[${utils.getTimeStamp()}] Twitch token is cached, checking to see when expired`)
+        const expirationTime = cachedTwitchTokenObject.expirationTime;
+        const minutesExpirationTime = expirationTime - minuteOffset * 60 * 1000
+        console.log(`[${utils.getTimeStamp()}] Original expiration time: ${utils.convertUnixTimestampToReadableTimestamp(expirationTime)}`)
+        console.log(`[${utils.getTimeStamp()}] ${minuteOffset} minutes before expiration time: ${utils.convertUnixTimestampToReadableTimestamp(minutesExpirationTime)}`)
+
+        if(Date.now() > minutesExpirationTime) {
+            console.log(`[${utils.getTimeStamp()}] Current time is less than 5 minutes before expiration time. Getting new token`)
+        }
+        else {
+            console.log(`[${utils.getTimeStamp()}] Current time is more than 5 minutes before expiration time. Using cached token`)
+            cachedTwitchTokenObject = await getTwitchTokenObject();
+        }
+    }
+
+    else {
+        console.log(`[${utils.getTimeStamp()}] Twitch token is not cached Getting new token`);
+        cachedTwitchTokenObject = await getTwitchTokenObject();
+    }
+
 
     if(cachedTwitchTokenObject === null) {
         console.error(`[${utils.getTimeStamp()}] Error getting twitch token object. Terminating getting stream`)
@@ -175,6 +197,9 @@ const getTwitchTokenObject = async () => {
         console.error(`[${utils.getTimeStamp()}] Error parsing twitch token object. Object came as ${twitchTokenObject}`)
         return null;
     }
+
+    //set expiration time for token
+    twitchTokenObject.expirationTime = Date.now() + twitchTokenObject.expires_in * 1000;
 
     console.log(`[${utils.getTimeStamp()}] Successfully got twitch token object`);
     return twitchTokenObject;
