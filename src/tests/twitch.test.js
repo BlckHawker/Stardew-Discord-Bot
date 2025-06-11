@@ -38,11 +38,28 @@ describe("sendLatestStreamMessage", () => {
 });
 
 describe("isStardewRelated", () => {
-  //todo Returns true if:
-  //todo the title
-  // todo tags
-  // todo game name match
-  //todo return false title, tags, nor game name doesn't match
+
+    test("returns true if title contains \"Stardew\"", () => {
+        const result = twitch.isStardewRelated({title: "stardew"})
+        expect(result).toBeTruthy()
+    }) 
+
+    test("returns true if there is at least one tag that contains \"Stardew\"", () => {
+        const result = twitch.isStardewRelated({title: "", tags: ["stardew"]})
+        expect(result).toBeTruthy()
+    })
+    
+    test("returns true if game name is \"Stardew Valley\"", () => {
+        const result = twitch.isStardewRelated({title: "", tags: [], game_name: "Stardew Valley"})
+        expect(result).toBeTruthy()
+    })
+    
+    test("return false if  title, tags, nor game name doesn't match \"Stardew Valley\"", () => {
+        const result = twitch.isStardewRelated({title: "", tags: [], game_name: ""})
+        expect(result).toBeFalsy()
+    })
+
+
 });
 
 describe("getStream", () => {
@@ -81,7 +98,7 @@ describe("getTwitchTokenObject", () => {
     expect(result.expirationTime).toBeGreaterThan(Date.now());
   });
 
-  //todo handles errors
+  //handles errors
   describe("Handler Errors", () => {
     let consoleErrorSpy;
     beforeEach(() => {
@@ -92,42 +109,43 @@ describe("getTwitchTokenObject", () => {
     afterEach(() => {
         consoleErrorSpy.mockRestore();
     });
-        //response is unsuccessful
-        test("response is unsuccessful", async () => {
 
-            fetch.mockResolvedValueOnce(
-                new Response(JSON.stringify(""), {
-                    status: 400,
-                    statusText: "statusText",
-                    headers: { "Content-Type": "application/json" },
-                })
-            )
+    //response is unsuccessful
+    test("response is unsuccessful", async () => {
 
-            const result = await twitch.getTwitchTokenObject();
+        fetch.mockResolvedValueOnce(
+            new Response(JSON.stringify(""), {
+                status: 400,
+                statusText: "statusText",
+                headers: { "Content-Type": "application/json" },
+            })
+        )
 
-            expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText");
+        const result = await twitch.getTwitchTokenObject();
 
-            expect(result).toBeNull() 
-        })
+        expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText");
+
+        expect(result).toBeNull() 
+    })
 
 
-        //twitchTokenObject is falsy (195)
-        test("twitchTokenObject json is falsy", async () => {
-            fetch.mockResolvedValueOnce(
-                new Response(JSON.stringify(null), {
-                    status: 200,
-                    statusText: "statusText",
-                    headers: { "Content-Type": "application/json" },
-                })
-            )
+    //twitchTokenObject is falsy
+    test("twitchTokenObject json is falsy", async () => {
+        fetch.mockResolvedValueOnce(
+            new Response(JSON.stringify(null), {
+                status: 200,
+                statusText: "statusText",
+                headers: { "Content-Type": "application/json" },
+            })
+        )
 
-            const result = await twitch.getTwitchTokenObject();
+        const result = await twitch.getTwitchTokenObject();
 
-            expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null");
+        expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null");
 
-            expect(result).toBeNull() 
+        expect(result).toBeNull() 
 
-        })
+    })
   })
 
 

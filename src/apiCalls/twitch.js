@@ -210,5 +210,5 @@ const getCorrectRole = (isStardewRelated) => {
 }  
 
 module.exports = {
-    getTwitchTokenObject, sendLatestStreamMessage
+    getTwitchTokenObject, sendLatestStreamMessage, isStardewRelated
 };
