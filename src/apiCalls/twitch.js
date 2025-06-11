@@ -37,14 +37,13 @@ const sendLatestStreamMessage = async (client) => {
     }
 
     else {
-        console.log(`[${utils.getTimeStamp()}] Notifis channel (id: \`${notifsChannel.id}\`) already cached. Skipping fetch`);
+        console.log(`[${utils.getTimeStamp()}] Notifis channel (#${notifsChannel.name}) already cached. Skipping fetch`);
     }
 
     
     //check if the stream object is the same as the cached one (if applicable)
-    //todo replace temp variable in console log
     if(cachedStreamObject === null) {
-        console.log(`[${utils.getTimeStamp()}] No stream cached. Sending announcement in {channel name}`)
+        console.log(`[${utils.getTimeStamp()}] No stream cached. Sending announcement in #${notifsChannel.name}`)
     }
     
     else if(streamObject.id === cachedStreamObject.id) {
@@ -52,28 +51,39 @@ const sendLatestStreamMessage = async (client) => {
         return;
     }
 
-    //todo replace temp variable in console log
     else {
-        console.log(`[${utils.getTimeStamp()}] Cached stream object id (${cachedStreamObject.id}) does not match current stream object's (${streamObject.id}). Sending announcement in {channel name}`)
+        console.log(`[${utils.getTimeStamp()}] Cached stream object id (${cachedStreamObject.id}) does not match current stream object's (${streamObject.id}). Sending announcement in #${notifsChannel.name}`)
 
     }
 
 
-    //todo overwrite cached stream object
+    //overwrite cached stream object
     cachedStreamObject = streamObject;
 
 
     //check if the stream is stardew related
     const stardewRelated = isStardewRelated(streamObject);
 
-    //todo get the correct role to ping based on if the stream is stardewRelated
+    //get the correct role to ping based on if the stream is stardewRelated
     const roleId = getCorrectRole(stardewRelated);
 
-    //todo create the message to send to the notifs channel
+    //create the message to send to the notifs channel
     //todo rephrase this
+    //todo add link to stream
     const messageContent = `<@&${roleId}> Hawker became live on twitch at ${streamObject.started_at} **${streamObject.title}** (id: \`${streamObject.id}\`)\n{link}`
 
-    //todo check if this stream has already been announced
+    //check if this stream has already been announced
+    const oldNotifMessages = await discord.getDiscordMessages(notifsChannel);
+
+    const duplicateMessage = oldNotifMessages.find(m => m.content === messageContent);
+
+    if(duplicateMessage !== undefined) {
+        console.log(`[${utils.getTimeStamp()}] Stream (id ${streamObject.id}) has already been announced in #${notifsChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicateMessage.createdTimestamp)}. Terminating sending stream notification`)
+        return;
+    }
+
+    //todo send message
+    discord.sendMessage(notifsChannel, messageContent);
 
 
 
