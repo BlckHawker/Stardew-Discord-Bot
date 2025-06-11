@@ -13,6 +13,10 @@ jest.mock("../apiCalls/discordCalls", () => ({
   sendMessage: jest.fn(),
 }));
 
+const setupConsoleErrorMock = () => {
+  return jest.spyOn(console, "error").mockImplementation(() => {});
+};
+
 const twitch = require("../apiCalls/twitch");
 
 process.env = {
@@ -52,7 +56,6 @@ describe("getStream", () => {
 });
 
 describe("getTwitchTokenObject", () => {
-  let getTwitchTokenObject;
   beforeEach(() => {
     fetch.mockReset();
   });
@@ -77,11 +80,41 @@ describe("getTwitchTokenObject", () => {
     expect(result).toHaveProperty("expirationTime");
     expect(result.expirationTime).toBeGreaterThan(Date.now());
   });
+
   //todo handles errors
+  describe("Handler Errors", () => {
+    let consoleErrorSpy;
+    beforeEach(() => {
+        fetch.mockReset();
+        consoleErrorSpy = setupConsoleErrorMock();
+    });
 
-  //todo response is unsuccessful (186)
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
+        //response is unsuccessful
+        test("response is unsuccessful", async () => {
 
-  //todo twitchTokenObject is falsy (195)
+            fetch.mockResolvedValueOnce(
+                new Response(JSON.stringify(""), {
+                    status: 400,
+                    statusText: "statusText",
+                    headers: { "Content-Type": "application/json" },
+                })
+            )
+
+            const result = await twitch.getTwitchTokenObject();
+
+            expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText");
+
+            expect(result).toBeNull() 
+        })
+
+
+        //todo twitchTokenObject is falsy (195)
+  })
+
+
 });
 
 describe("getCorrectRole", () => {
