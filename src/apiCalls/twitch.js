@@ -182,6 +182,8 @@ const getTwitchTokenObject = async () => {
         method: "POST",
     })
 
+    console.log(response)
+
     //verify the status is good
     if(Math.floor(response.status / 100) !== 2) {
         console.error(`[${utils.getTimeStamp()}] Error getting twitch token. Status ${response.status} ${response.statusText}`)
@@ -191,6 +193,8 @@ const getTwitchTokenObject = async () => {
     //parse the twitch token object
     let twitchTokenObject = await response.json();
 
+    console.log("twitchTokenObject")
+    console.log(twitchTokenObject)
     //if there's a problem parsing the twitch token object, log an error
     if(!twitchTokenObject) {
         console.error(`[${utils.getTimeStamp()}] Error parsing twitch token object. Object came as ${twitchTokenObject}`)
@@ -210,5 +214,5 @@ const getCorrectRole = (isStardewRelated) => {
 }  
 
 module.exports = {
-    sendLatestStreamMessage
+    getTwitchTokenObject, sendLatestStreamMessage
 };
