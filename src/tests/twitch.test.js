@@ -38,39 +38,39 @@ process.env = {
   TWITCH_OTHER_STREAM_ROLE: "other-role-id",
 };
 
-// describe("sendLatestStreamMessage", () => {
-//   //todo Sends a stream message when stream is live and new
-//   //todo Doesn't resend message if it's already cached
-//   //todo Doesn't send message if stream isn’t live
-//   //todo Handles failure cases
-//   //todo stream object not found (18)
-//   //todo notification channel cannot be found (29)
-// });
+describe("sendLatestStreamMessage", () => {
+  //todo Sends a stream message when stream is live and new
+  //todo Doesn't resend message if it's already cached
+  //todo Doesn't send message if stream isn’t live
+  //todo Handles failure cases
+  //todo stream object not found (18)
+  //todo notification channel cannot be found (29)
+});
 
-// describe("isStardewRelated", () => {
+describe("isStardewRelated", () => {
 
-//     test("returns true if title contains \"Stardew\"", () => {
-//         const result = twitch.isStardewRelated({title: "stardew"})
-//         expect(result).toBeTruthy()
-//     }) 
+    test("returns true if title contains \"Stardew\"", () => {
+        const result = twitch.isStardewRelated({title: "stardew"})
+        expect(result).toBeTruthy()
+    }) 
 
-//     test("returns true if there is at least one tag that contains \"Stardew\"", () => {
-//         const result = twitch.isStardewRelated({title: "", tags: ["stardew"]})
-//         expect(result).toBeTruthy()
-//     })
+    test("returns true if there is at least one tag that contains \"Stardew\"", () => {
+        const result = twitch.isStardewRelated({title: "", tags: ["stardew"]})
+        expect(result).toBeTruthy()
+    })
     
-//     test("returns true if game name is \"Stardew Valley\"", () => {
-//         const result = twitch.isStardewRelated({title: "", tags: [], game_name: "Stardew Valley"})
-//         expect(result).toBeTruthy()
-//     })
+    test("returns true if game name is \"Stardew Valley\"", () => {
+        const result = twitch.isStardewRelated({title: "", tags: [], game_name: "Stardew Valley"})
+        expect(result).toBeTruthy()
+    })
     
-//     test("return false if  title, tags, nor game name doesn't match \"Stardew Valley\"", () => {
-//         const result = twitch.isStardewRelated({title: "", tags: [], game_name: ""})
-//         expect(result).toBeFalsy()
-//     })
+    test("return false if  title, tags, nor game name doesn't match \"Stardew Valley\"", () => {
+        const result = twitch.isStardewRelated({title: "", tags: [], game_name: ""})
+        expect(result).toBeFalsy()
+    })
 
 
-// });
+});
 
 describe("getStream", () => {
     let consoleLogSpy;
@@ -92,51 +92,51 @@ describe("getStream", () => {
         consoleErrorSpy.mockRestore();
     });
 
-//   test("Uses cached token if still valid", async  () => {
-//     const futureTime = Date.now() + 10 * 60 * 1000;
-//     twitch._setCachedTwitchTokenObject({
-//       access_token: 'valid-token',
-//       expirationTime: futureTime
-//     });
+  test("Uses cached token if still valid", async  () => {
+    const futureTime = Date.now() + 10 * 60 * 1000;
+    twitch._setCachedTwitchTokenObject({
+      access_token: 'valid-token',
+      expirationTime: futureTime
+    });
 
-//     fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+    fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
 
-//     const result = await twitch.getStream();
+    const result = await twitch.getStream();
 
-//     expect(result).toEqual(mockStream.data[0]);
+    expect(result).toEqual(mockStream.data[0]);
 
-//     expect(consoleLogSpy).toHaveBeenCalledWith(
-//       "[MOCKED_TIMESTAMP] Current time is more than 5 minutes before expiration time. Using cached token"
-//     );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      "[MOCKED_TIMESTAMP] Current time is more than 5 minutes before expiration time. Using cached token"
+    );
 
-//   })
-//   test("Refreshes token when expired", async () => {
+  })
+  test("Refreshes token when expired", async () => {
 
-//     twitch._setCachedTwitchTokenObject(({
-//       access_token: 'valid-token',
-//       expirationTime: 0
-//     }));
+    twitch._setCachedTwitchTokenObject(({
+      access_token: 'valid-token',
+      expirationTime: 0
+    }));
 
-//     jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce({
-//       access_token: "abc123",
-//       expirationTime: Date.now() + 10 * 60 * 1000,
-//       token_type: "bearer",
-//     });
+    jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce({
+      access_token: "abc123",
+      expirationTime: Date.now() + 10 * 60 * 1000,
+      token_type: "bearer",
+    });
 
-//     fetch.mockResolvedValue({
-//         status: 200,
-//         json: async () => mockStream,
-//     });
+    fetch.mockResolvedValue({
+        status: 200,
+        json: async () => mockStream,
+    });
 
 
-//     const result = await twitch.getStream();
+    const result = await twitch.getStream();
 
-//     expect(result).toEqual(mockStream.data[0]);
+    expect(result).toEqual(mockStream.data[0]);
 
-//     expect(consoleLogSpy).toHaveBeenCalledWith(
-//       "[MOCKED_TIMESTAMP] Current time is less than 5 minutes before expiration time. Getting new token"
-//     );
-//   })
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      "[MOCKED_TIMESTAMP] Current time is less than 5 minutes before expiration time. Getting new token"
+    );
+  })
 
   //todo Returns valid stream object
   //todo 
@@ -154,25 +154,24 @@ describe("getStream", () => {
         consoleLogSpy.mockRestore();
         consoleErrorSpy.mockRestore();
     });
-    // test("cachedTwitchTokenObject is null", async () => {
-    //     jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(null);
-    //     fetch.mockResolvedValueOnce(new Response(JSON.stringify(null), {
-    //         status: 200,
-    //     }))
+    test("cachedTwitchTokenObject is null", async () => {
+        jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(null);
+        fetch.mockResolvedValueOnce(new Response(JSON.stringify(null), {
+            status: 200,
+        }))
 
-    //     fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockToken), {
-    //         status: 200,
-    //     }))
+        fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockToken), {
+            status: 200,
+        }))
 
-    //     const result = await twitch.getStream();
-    //     expect(consoleErrorSpy).toHaveBeenCalledWith(
-    //     "[MOCKED_TIMESTAMP] Error getting twitch token object. Terminating getting stream"
-    //     );
-    //     expect(result).toBeNull()
+        const result = await twitch.getStream();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[MOCKED_TIMESTAMP] Error getting twitch token object. Terminating getting stream"
+        );
+        expect(result).toBeNull()
 
-    // })
+    })
 
-    //todo (156)
     test("response is unsuccessful", async () => {
         twitch._setCachedTwitchTokenObject(mockToken)
         fetch.mockResolvedValueOnce(new Response(JSON.stringify(null), {
@@ -186,97 +185,109 @@ describe("getStream", () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(
         "[MOCKED_TIMESTAMP] Error getting latest twitch stream. Status 400 Mock Error"
         );
-        expect(result).toBeNull()
         
 
     })
-    //todo stream data length is 0 (164)
+    test("stream data length is 0", async () => {
+        twitch._setCachedTwitchTokenObject(mockToken)
+        fetch.mockResolvedValueOnce(new Response(JSON.stringify({data: []}), {
+            status: 200,
+        }));
+
+        const result = await twitch.getStream();
+        expect(result).toBeNull();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[MOCKED_TIMESTAMP] Could not find live Hawker stream"
+        );
+
+
+    })
   })
   
 });
 
-// describe("getTwitchTokenObject", () => {
-//   beforeEach(() => {
-//     jest.restoreAllMocks();
-//     fetch.mockReset();
-//   });
+describe("getTwitchTokenObject", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    fetch.mockReset();
+  });
 
-//   test("Returns parsed token object with expirationTime", async () => {
+  test("Returns parsed token object with expirationTime", async () => {
     
 
-//     fetch.mockResolvedValueOnce(
-//       new Response(JSON.stringify(mockToken), {
-//         status: 200,
-//       })
-//     );
+    fetch.mockResolvedValueOnce(
+      new Response(JSON.stringify(mockToken), {
+        status: 200,
+      })
+    );
 
-//     const result = await twitch.getTwitchTokenObject();
+    const result = await twitch.getTwitchTokenObject();
 
-//     expect(result).toHaveProperty("access_token", "abc123");
-//     expect(result).toHaveProperty("expirationTime");
-//     expect(result.expirationTime).toBeGreaterThan(Date.now());
-//   });
+    expect(result).toHaveProperty("access_token", "abc123");
+    expect(result).toHaveProperty("expirationTime");
+    expect(result.expirationTime).toBeGreaterThan(Date.now());
+  });
 
-//   //handles errors
-//   describe("Handler Errors", () => {
-//     let consoleErrorSpy;
-//     beforeEach(() => {
-//         fetch.mockReset();
-//         consoleErrorSpy = setupConsoleErrorMock();
-//     });
+  //handles errors
+  describe("Handler Errors", () => {
+    let consoleErrorSpy;
+    beforeEach(() => {
+        fetch.mockReset();
+        consoleErrorSpy = setupConsoleErrorMock();
+    });
 
-//     afterEach(() => {
-//         consoleErrorSpy.mockRestore();
-//     });
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
 
-//     //response is unsuccessful
-//     test("response is unsuccessful", async () => {
+    //response is unsuccessful
+    test("response is unsuccessful", async () => {
 
-//         fetch.mockResolvedValueOnce(
-//             new Response(JSON.stringify(""), {
-//                 status: 400,
-//                 statusText: "statusText",
-//                 headers: { "Content-Type": "application/json" },
-//             })
-//         )
+        fetch.mockResolvedValueOnce(
+            new Response(JSON.stringify(""), {
+                status: 400,
+                statusText: "statusText",
+                headers: { "Content-Type": "application/json" },
+            })
+        )
 
-//         const result = await twitch.getTwitchTokenObject();
+        const result = await twitch.getTwitchTokenObject();
 
-//         expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText");
+        expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText");
 
-//         expect(result).toBeNull() 
-//     })
-
-
-//     //twitchTokenObject is falsy
-//     test("twitchTokenObject json is falsy", async () => {
-//         fetch.mockResolvedValueOnce(
-//             new Response(JSON.stringify(null), {
-//                 status: 200,
-//                 statusText: "statusText",
-//                 headers: { "Content-Type": "application/json" },
-//             })
-//         )
-
-//         const result = await twitch.getTwitchTokenObject();
-
-//         expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null");
-
-//         expect(result).toBeNull() 
-
-//     })
-//   })
+        expect(result).toBeNull() 
+    })
 
 
-// });
+    //twitchTokenObject is falsy
+    test("twitchTokenObject json is falsy", async () => {
+        fetch.mockResolvedValueOnce(
+            new Response(JSON.stringify(null), {
+                status: 200,
+                statusText: "statusText",
+                headers: { "Content-Type": "application/json" },
+            })
+        )
 
-// describe("getCorrectRole", () => {
-//   test("stardew role is pinged if true", () => {
-//     const results = twitch.getCorrectRole(true)
-//     expect(results).toEqual(process.env.TWITCH_STARDEW_STREAM_ROLE)
-//   })
-//     test("other role is pinged if false", () => {
-//     const results = twitch.getCorrectRole(false)
-//     expect(results).toEqual(process.env.TWITCH_OTHER_STREAM_ROLE)
-//   })
-// });
+        const result = await twitch.getTwitchTokenObject();
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null");
+
+        expect(result).toBeNull() 
+
+    })
+  })
+
+
+});
+
+describe("getCorrectRole", () => {
+  test("stardew role is pinged if true", () => {
+    const results = twitch.getCorrectRole(true)
+    expect(results).toEqual(process.env.TWITCH_STARDEW_STREAM_ROLE)
+  })
+    test("other role is pinged if false", () => {
+    const results = twitch.getCorrectRole(false)
+    expect(results).toEqual(process.env.TWITCH_OTHER_STREAM_ROLE)
+  })
+});
