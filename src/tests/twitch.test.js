@@ -111,7 +111,23 @@ describe("getTwitchTokenObject", () => {
         })
 
 
-        //todo twitchTokenObject is falsy (195)
+        //twitchTokenObject is falsy (195)
+        test("twitchTokenObject json is falsy", async () => {
+            fetch.mockResolvedValueOnce(
+                new Response(JSON.stringify(null), {
+                    status: 200,
+                    statusText: "statusText",
+                    headers: { "Content-Type": "application/json" },
+                })
+            )
+
+            const result = await twitch.getTwitchTokenObject();
+
+            expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null");
+
+            expect(result).toBeNull() 
+
+        })
   })
 
 
