@@ -138,8 +138,23 @@ describe("getStream", () => {
     );
   })
 
-  //todo Returns valid stream object
-  //todo 
+  test("Returns valid stream object", async () => {
+    twitch._setCachedTwitchTokenObject(mockToken);
+    fetch.mockResolvedValueOnce({
+        status: 200,
+        json: async () => mockStream,
+    });
+
+    const result = await twitch.getStream();
+
+    expect(result).toEqual(mockStream.data[0]);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[MOCKED_TIMESTAMP] Successfully got stream data"
+    );
+
+  })
+
   describe("Handles Errors", () => {
     beforeEach(() => {
         jest.restoreAllMocks();
@@ -199,8 +214,6 @@ describe("getStream", () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(
         "[MOCKED_TIMESTAMP] Could not find live Hawker stream"
         );
-
-
     })
   })
   
