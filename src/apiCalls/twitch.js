@@ -4,7 +4,6 @@ const utils = require("../utils.js");
 const discord = require("../apiCalls/discordCalls.js")
 const fetch = require('node-fetch')
 
-
 let notifsChannel = null;
 let cachedTwitchTokenObject = null;
 let cachedStreamObject = null;
@@ -40,7 +39,6 @@ const sendLatestStreamMessage = async (client) => {
         console.log(`[${utils.getTimeStamp()}] Notifis channel (#${notifsChannel.name}) already cached. Skipping fetch`);
     }
 
-    
     //check if the stream object is the same as the cached one (if applicable)
     if(cachedStreamObject === null) {
         console.log(`[${utils.getTimeStamp()}] No stream cached. Sending announcement in #${notifsChannel.name}`)
@@ -56,10 +54,8 @@ const sendLatestStreamMessage = async (client) => {
 
     }
 
-
     //overwrite cached stream object
     cachedStreamObject = streamObject;
-
 
     //check if the stream is stardew related
     const stardewRelated = isStardewRelated(streamObject);
@@ -68,9 +64,7 @@ const sendLatestStreamMessage = async (client) => {
     const roleId = getCorrectRole(stardewRelated);
 
     //create the message to send to the notifs channel
-    //todo rephrase this
-    //todo add link to stream
-    const messageContent = `<@&${roleId}> Hawker became live on twitch at ${streamObject.started_at} **${streamObject.title}** (id: \`${streamObject.id}\`)\n{link}`
+    const messageContent = `<@&${roleId}>\nHawker is live on twitch!\nStarted streaming at ${utils.convertIsoToDiscordTimestamp(streamObject.started_at)}\nTitle: **${streamObject.title}**\nWatch here: https://www.twitch.tv/${streamObject.user_login}\n(Stream id: \`${streamObject.id}\`)`
 
     //check if this stream has already been announced
     const oldNotifMessages = await discord.getDiscordMessages(notifsChannel);
@@ -82,12 +76,8 @@ const sendLatestStreamMessage = async (client) => {
         return;
     }
 
-    //todo send message
+    //send message
     discord.sendMessage(notifsChannel, messageContent);
-
-
-
-
 }
 
 const isStardewRelated = (stream) => {
