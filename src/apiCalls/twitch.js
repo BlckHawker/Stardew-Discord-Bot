@@ -1,4 +1,3 @@
-//todo add "request" as dependency 
 require("dotenv").config();
 const utils = require("../utils.js");
 const discord = require("../apiCalls/discordCalls.js")
@@ -192,7 +191,7 @@ const getTwitchTokenObject = async () => {
     //parse the twitch token object
     let twitchTokenObject = await response.json();
 
-    //todo if there's a problem parsing the twitch token object, log an error
+    //if there's a problem parsing the twitch token object, log an error
     if(!twitchTokenObject) {
         console.error(`[${utils.getTimeStamp()}] Error parsing twitch token object. Object came as ${twitchTokenObject}`)
         return null;
