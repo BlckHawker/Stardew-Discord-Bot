@@ -121,15 +121,15 @@ const getStream = async () => {
 
         if(Date.now() > minutesExpirationTime) {
             console.log(`[${utils.getTimeStamp()}] Current time is less than 5 minutes before expiration time. Getting new token`)
+            cachedTwitchTokenObject = await getTwitchTokenObject();
         }
         else {
             console.log(`[${utils.getTimeStamp()}] Current time is more than 5 minutes before expiration time. Using cached token`)
-            cachedTwitchTokenObject = await getTwitchTokenObject();
         }
     }
 
     else {
-        console.log(`[${utils.getTimeStamp()}] Twitch token is not cached Getting new token`);
+        console.log(`[${utils.getTimeStamp()}] Twitch token is not cached. Getting new token`);
         cachedTwitchTokenObject = await getTwitchTokenObject();
     }
 
@@ -207,8 +207,12 @@ const getTwitchTokenObject = async () => {
 //if bool is true, sends id of stardew stream role, otherwise sends id of other stream role
 const getCorrectRole = (isStardewRelated) => {
     return isStardewRelated ? process.env.TWITCH_STARDEW_STREAM_ROLE : process.env.TWITCH_OTHER_STREAM_ROLE
-}  
+}
+
+const _setCachedTwitchTokenObject = (val) => cachedTwitchTokenObject = val;
+const _getCachedTwitchTokenObject = () => cachedTwitchTokenObject;
+
 
 module.exports = {
-    getTwitchTokenObject, sendLatestStreamMessage, isStardewRelated, getCorrectRole
+    getTwitchTokenObject, sendLatestStreamMessage, isStardewRelated, getCorrectRole, _setCachedTwitchTokenObject, _getCachedTwitchTokenObject, getStream
 };

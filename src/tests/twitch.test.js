@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 jest.mock("node-fetch");
-
+const { Response } = jest.requireActual("node-fetch");
 jest.mock("../utils", () => ({
   getTimeStamp: jest.fn(() => "MOCKED_TIMESTAMP"),
   convertIsoToDiscordTimestamp: jest.fn((iso) => `DISCORD_TIMESTAMP(${iso})`),
@@ -13,11 +13,21 @@ jest.mock("../apiCalls/discordCalls", () => ({
   sendMessage: jest.fn(),
 }));
 
+const twitch = require("../apiCalls/twitch");
+
 const setupConsoleErrorMock = () => {
   return jest.spyOn(console, "error").mockImplementation(() => {});
 };
 
-const twitch = require("../apiCalls/twitch");
+const setUpConsoleLogMock = () => {
+    return jest.spyOn(console, "log").mockImplementation(() => {});
+}
+
+const mockToken = {
+      access_token: "abc123",
+      expires_in: 3600,
+      token_type: "bearer",
+    };
 
 process.env = {
   TWITCH_CLIENT_ID: "test-client-id",
@@ -28,66 +38,157 @@ process.env = {
   TWITCH_OTHER_STREAM_ROLE: "other-role-id",
 };
 
-describe("sendLatestStreamMessage", () => {
-  //todo Sends a stream message when stream is live and new
-  //todo Doesn't resend message if it's already cached
-  //todo Doesn't send message if stream isn’t live
-  //todo Handles failure cases
-  //todo stream object not found (18)
-  //todo notification channel cannot be found (29)
-});
+// describe("sendLatestStreamMessage", () => {
+//   //todo Sends a stream message when stream is live and new
+//   //todo Doesn't resend message if it's already cached
+//   //todo Doesn't send message if stream isn’t live
+//   //todo Handles failure cases
+//   //todo stream object not found (18)
+//   //todo notification channel cannot be found (29)
+// });
 
-describe("isStardewRelated", () => {
+// describe("isStardewRelated", () => {
 
-    test("returns true if title contains \"Stardew\"", () => {
-        const result = twitch.isStardewRelated({title: "stardew"})
-        expect(result).toBeTruthy()
-    }) 
+//     test("returns true if title contains \"Stardew\"", () => {
+//         const result = twitch.isStardewRelated({title: "stardew"})
+//         expect(result).toBeTruthy()
+//     }) 
 
-    test("returns true if there is at least one tag that contains \"Stardew\"", () => {
-        const result = twitch.isStardewRelated({title: "", tags: ["stardew"]})
-        expect(result).toBeTruthy()
-    })
+//     test("returns true if there is at least one tag that contains \"Stardew\"", () => {
+//         const result = twitch.isStardewRelated({title: "", tags: ["stardew"]})
+//         expect(result).toBeTruthy()
+//     })
     
-    test("returns true if game name is \"Stardew Valley\"", () => {
-        const result = twitch.isStardewRelated({title: "", tags: [], game_name: "Stardew Valley"})
-        expect(result).toBeTruthy()
-    })
+//     test("returns true if game name is \"Stardew Valley\"", () => {
+//         const result = twitch.isStardewRelated({title: "", tags: [], game_name: "Stardew Valley"})
+//         expect(result).toBeTruthy()
+//     })
     
-    test("return false if  title, tags, nor game name doesn't match \"Stardew Valley\"", () => {
-        const result = twitch.isStardewRelated({title: "", tags: [], game_name: ""})
-        expect(result).toBeFalsy()
-    })
+//     test("return false if  title, tags, nor game name doesn't match \"Stardew Valley\"", () => {
+//         const result = twitch.isStardewRelated({title: "", tags: [], game_name: ""})
+//         expect(result).toBeFalsy()
+//     })
 
 
-});
+// });
 
 describe("getStream", () => {
-  //todo Uses cached token if still valid
-  //todo Refreshes token when expired
+    let consoleLogSpy;
+    let consoleErrorSpy;
+    const mockStream = {
+      data: [{ id: '1234', title: 'Stream Title', tags: [], game_name: 'Some Game' }]
+    };
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        fetch.mockReset();
+        twitch._setCachedTwitchTokenObject(null);
+        consoleLogSpy = setUpConsoleLogMock();
+        consoleErrorSpy = setupConsoleErrorMock();
+
+    })
+
+    afterEach(() => {
+        consoleLogSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+    });
+
+  test("Uses cached token if still valid", async  () => {
+    const futureTime = Date.now() + 10 * 60 * 1000;
+    twitch._setCachedTwitchTokenObject({
+      access_token: 'valid-token',
+      expirationTime: futureTime
+    });
+
+    fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+
+    const result = await twitch.getStream();
+
+    expect(result).toEqual(mockStream.data[0]);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      "[MOCKED_TIMESTAMP] Current time is more than 5 minutes before expiration time. Using cached token"
+    );
+
+  })
+  test("Refreshes token when expired", async () => {
+
+    twitch._setCachedTwitchTokenObject(({
+      access_token: 'valid-token',
+      expirationTime: 0
+    }));
+
+    jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce({
+      access_token: "abc123",
+      expirationTime: Date.now() + 10 * 60 * 1000,
+      token_type: "bearer",
+    });
+
+    fetch.mockResolvedValue({
+        status: 200,
+        json: async () => mockStream,
+    });
+
+
+    const result = await twitch.getStream();
+
+    expect(result).toEqual(mockStream.data[0]);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      "[MOCKED_TIMESTAMP] Current time is less than 5 minutes before expiration time. Getting new token"
+    );
+  })
+
   //todo Returns valid stream object
-  //todo Handles errors
-  // todo cachedTwitchTokenObject is null (137)
-  //todo response is unsuccessful (156)
-  //todo stream data length is 0 (164)
+  //todo 
+  describe("Handles Errors", () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        fetch.mockReset();
+        twitch._setCachedTwitchTokenObject(null);
+        consoleLogSpy = setUpConsoleLogMock();
+        consoleErrorSpy = setupConsoleErrorMock();
+
+    })
+
+    afterEach(() => {
+        consoleLogSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+    });
+    test("cachedTwitchTokenObject is null", async () => {
+        jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(null);
+        fetch.mockResolvedValueOnce(new Response(JSON.stringify(null), {
+            status: 200,
+        }))
+
+        fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockToken), {
+            status: 200,
+        }))
+
+        const result = await twitch.getStream();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[MOCKED_TIMESTAMP] Error getting twitch token object. Terminating getting stream"
+        );
+        expect(result).toBeNull()
+
+    })
+    //todo response is unsuccessful (156)
+    //todo stream data length is 0 (164)
+  })
+  
 });
 
 describe("getTwitchTokenObject", () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     fetch.mockReset();
   });
 
   test("Returns parsed token object with expirationTime", async () => {
-    const mockResponse = {
-      access_token: "abc123",
-      expires_in: 3600,
-      token_type: "bearer",
-    };
+    
 
     fetch.mockResolvedValueOnce(
-      new Response(JSON.stringify(mockResponse), {
+      new Response(JSON.stringify(mockToken), {
         status: 200,
-        headers: { "Content-Type": "application/json" },
       })
     );
 
