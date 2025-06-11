@@ -27,14 +27,17 @@ const client = new Discord.Client({
     ]
 })
 
+client.on("messageCreate", (message) => {
+    if(message.content.toUpperCase() === "TW") {
+        twitch.sendLatestStreamMessage(client)
+    }
+
+})
 
 
 // When the bot first initializes
 client.on("ready", (c) => {
     console.log(`${c.user.tag} is online`);
-
-    twitch.sendLatestStreamMessage()
-
 
     // // every hour, check if there is a new ICC beta release
     // const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
