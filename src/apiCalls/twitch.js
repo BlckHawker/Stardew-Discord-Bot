@@ -3,7 +3,7 @@ const utils = require("../utils.js");
 const discord = require("../apiCalls/discordCalls.js")
 const fetch = require('node-fetch')
 
-let notifsChannel = null;
+let cachedNotifsChannel = null;
 let cachedTwitchTokenObject = null;
 let cachedStreamObject = null;
 
@@ -21,12 +21,12 @@ const sendLatestStreamMessage = async (client) => {
     }
 
     //get the channel object to send the notification in
-    if(notifsChannel === null) {
+    if(cachedNotifsChannel === null) {
         console.log(`[${utils.getTimeStamp()}] Getting stream notifs channel...`)
-        notifsChannel = await discord.getDiscordChannel(client, process.env.STREAM_NOTIFS_CHANNEL_ID)
+        cachedNotifsChannel = await discord.getDiscordChannel(client, process.env.STREAM_NOTIFS_CHANNEL_ID)
 
         //if there's a problem with getting the notifs channel, stop this method
-        if(notifsChannel === null) {
+        if(cachedNotifsChannel === null) {
             console.error(`[${utils.getTimeStamp()}] There was an error getting stream notifs channel. Terminating sending message`)
             return;
         }
@@ -35,12 +35,12 @@ const sendLatestStreamMessage = async (client) => {
     }
 
     else {
-        console.log(`[${utils.getTimeStamp()}] Notifis channel (#${notifsChannel.name}) already cached. Skipping fetch`);
+        console.log(`[${utils.getTimeStamp()}] Notifis channel (#${cachedNotifsChannel.name}) already cached. Skipping fetch`);
     }
 
     //check if the stream object is the same as the cached one (if applicable)
     if(cachedStreamObject === null) {
-        console.log(`[${utils.getTimeStamp()}] No stream cached. Sending announcement in #${notifsChannel.name}`)
+        console.log(`[${utils.getTimeStamp()}] No stream cached. Sending announcement in #${cachedNotifsChannel.name}`)
     }
     
     else if(streamObject.id === cachedStreamObject.id) {
@@ -49,7 +49,7 @@ const sendLatestStreamMessage = async (client) => {
     }
 
     else {
-        console.log(`[${utils.getTimeStamp()}] Cached stream object id (${cachedStreamObject.id}) does not match current stream object's (${streamObject.id}). Sending announcement in #${notifsChannel.name}`)
+        console.log(`[${utils.getTimeStamp()}] Cached stream object id (${cachedStreamObject.id}) does not match current stream object's (${streamObject.id}). Sending announcement in #${cachedNotifsChannel.name}`)
 
     }
 
@@ -66,17 +66,17 @@ const sendLatestStreamMessage = async (client) => {
     const messageContent = `<@&${roleId}>\nHawker is live on twitch!\nStarted streaming at ${utils.convertIsoToDiscordTimestamp(streamObject.started_at)}\nTitle: **${streamObject.title}**\nWatch here: https://www.twitch.tv/${streamObject.user_login}`
 
     //check if this stream has already been announced
-    const oldNotifMessages = await discord.getDiscordMessages(notifsChannel);
+    const oldNotifMessages = await discord.getDiscordMessages(cachedNotifsChannel);
 
     const duplicateMessage = oldNotifMessages.find(m => m.content === messageContent);
 
     if(duplicateMessage !== undefined) {
-        console.log(`[${utils.getTimeStamp()}] Stream (id ${streamObject.id}) has already been announced in #${notifsChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicateMessage.createdTimestamp)}. Terminating sending stream notification`)
+        console.log(`[${utils.getTimeStamp()}] Stream (id ${streamObject.id}) has already been announced in #${cachedNotifsChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicateMessage.createdTimestamp)}. Terminating sending stream notification`)
         return;
     }
 
     //send message
-    discord.sendMessage(notifsChannel, messageContent);
+    discord.sendMessage(cachedNotifsChannel, messageContent);
 }
 
 const isStardewRelated = (stream) => {
@@ -211,8 +211,10 @@ const getCorrectRole = (isStardewRelated) => {
 
 const _setCachedTwitchTokenObject = (val) => cachedTwitchTokenObject = val;
 const _getCachedTwitchTokenObject = () => cachedTwitchTokenObject;
+const _setCachedStreamObject = (val) => cachedStreamObject = val;
+const _setCachedNotifsChannel = (val) => cachedNotifsChannel = val;
 
 
 module.exports = {
-    getTwitchTokenObject, sendLatestStreamMessage, isStardewRelated, getCorrectRole, _setCachedTwitchTokenObject, _getCachedTwitchTokenObject, getStream
+    getTwitchTokenObject, sendLatestStreamMessage, isStardewRelated, getCorrectRole, _setCachedTwitchTokenObject, _getCachedTwitchTokenObject, getStream, _setCachedStreamObject, _setCachedNotifsChannel
 };
