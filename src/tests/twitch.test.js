@@ -29,6 +29,10 @@ const mockToken = {
       token_type: "bearer",
     };
 
+const mockStream = {
+      data: [{ id: '1234', title: 'Stream Title', tags: [], game_name: 'Some Game' }]
+    };
+
 process.env = {
   TWITCH_CLIENT_ID: "test-client-id",
   TWITCH_CLIENT_SECRET: "test-secret",
@@ -39,12 +43,50 @@ process.env = {
 };
 
 describe("sendLatestStreamMessage", () => {
+  let consoleErrorSpy;
+
+  beforeEach(() => {
+        jest.restoreAllMocks();
+        consoleErrorSpy = setupConsoleErrorMock();
+    })
+
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
+
+  
+
   //todo Sends a stream message when stream is live and new
   //todo Doesn't resend message if it's already cached
   //todo Doesn't send message if stream isn’t live
-  //todo Handles failure cases
-  //todo stream object not found (18)
-  //todo notification channel cannot be found (29)
+  //todo 
+  describe("Handles failure cases", () => {
+      beforeEach(() => {
+        jest.restoreAllMocks();
+          consoleErrorSpy = setupConsoleErrorMock();
+      })
+
+      afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
+    test("stream object not found", async () => {
+      
+      jest.spyOn(twitch, "getStream").mockResolvedValueOnce(null);
+      fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockToken), { status: 200 }));
+      fetch.mockResolvedValueOnce(new Response(JSON.stringify({data: []}), { status: 200 }));
+
+      await twitch.sendLatestStreamMessage({});
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[MOCKED_TIMESTAMP] Could not find live Hawker stream. Unable to send twitch message"
+        );
+
+
+
+    })
+    //todo notification channel cannot be found (29)
+  })
+    
 });
 
 describe("isStardewRelated", () => {
@@ -75,9 +117,7 @@ describe("isStardewRelated", () => {
 describe("getStream", () => {
     let consoleLogSpy;
     let consoleErrorSpy;
-    const mockStream = {
-      data: [{ id: '1234', title: 'Stream Title', tags: [], game_name: 'Some Game' }]
-    };
+
     beforeEach(() => {
         jest.restoreAllMocks();
         fetch.mockReset();
