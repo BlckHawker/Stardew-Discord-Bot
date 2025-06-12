@@ -7,11 +7,7 @@ jest.mock("../utils", () => ({
   convertUnixTimestampToReadableTimestamp: jest.fn((ts) => `READABLE(${ts})`),
 }));
 
-jest.mock("../apiCalls/discordCalls", () => ({
-  getDiscordChannel: jest.fn(),
-  getDiscordMessages: jest.fn(),
-  sendMessage: jest.fn(),
-}));
+const discord = require("../apiCalls/discordCalls")
 
 const twitch = require("../apiCalls/twitch");
 
@@ -70,21 +66,25 @@ describe("sendLatestStreamMessage", () => {
         consoleErrorSpy.mockRestore();
     });
     test("stream object not found", async () => {
-      
       jest.spyOn(twitch, "getStream").mockResolvedValueOnce(null);
-      fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockToken), { status: 200 }));
+      twitch._setCachedTwitchTokenObject(mockToken)
       fetch.mockResolvedValueOnce(new Response(JSON.stringify({data: []}), { status: 200 }));
-
-      await twitch.sendLatestStreamMessage({});
+      await twitch.sendLatestStreamMessage();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "[MOCKED_TIMESTAMP] Could not find live Hawker stream. Unable to send twitch message"
         );
-
-
-
     })
-    //todo notification channel cannot be found (29)
+    
+    test("notification channel cannot be found", async () => {
+      twitch._setCachedTwitchTokenObject(mockToken)
+      fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+      jest.spyOn(discord, "getDiscordChannel").mockResolvedValueOnce(null)
+      await twitch.sendLatestStreamMessage();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[MOCKED_TIMESTAMP] There was an error getting stream notifs channel. Terminating sending message"
+        );
+    })
   })
     
 });
