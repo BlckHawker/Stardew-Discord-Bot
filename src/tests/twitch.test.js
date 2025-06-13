@@ -105,7 +105,6 @@ describe("sendLatestStreamMessage", () => {
 
   describe("failure cases", () => {
   beforeEach(() => {
-    jest.restoreAllMocks();
     mockConsoleError();
   });
 
@@ -241,7 +240,6 @@ describe("getStream", () => {
 
   describe("Handles Errors", () => {
     beforeEach(() => {
-        jest.restoreAllMocks();
         fetch.mockReset();
         twitch._setCachedTwitchTokenObject(null);
         ({ consoleErrorSpy, consoleLogSpy } = setupConsoleSpies());
