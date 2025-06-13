@@ -4,8 +4,8 @@ const { Response } = jest.requireActual("node-fetch");
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 jest.mock("../utils", () => ({
   getTimeStamp: jest.fn(() => MOCK_TIMESTAMP),
-  convertIsoToDiscordTimestamp: jest.fn((iso) => `DISCORD_TIMESTAMP()`),
-  convertUnixTimestampToReadableTimestamp: jest.fn((ts) => 'READABLE'),
+  convertIsoToDiscordTimestamp: jest.fn(() => `DISCORD_TIMESTAMP()`),
+  convertUnixTimestampToReadableTimestamp: jest.fn(() => 'READABLE'),
 }));
 jest.useFakeTimers().setSystemTime(new Date("2025-01-01T00:00:00Z"));
 
