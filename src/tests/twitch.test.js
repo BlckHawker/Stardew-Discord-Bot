@@ -102,7 +102,7 @@ describe("sendLatestStreamMessage", () => {
 
     const notifsChannel = {name: "channel name", id: "id" }
     twitch._setCachedNotifsChannel(notifsChannel)
-    jest.spyOn(twitch, "getStream").mockResolvedValue(mockStreamData);
+    jest.spyOn(twitch, "getStream").mockResolvedValueOnce(mockStreamData);
     jest.spyOn(twitch, "getCorrectRole").mockReturnValueOnce("role")
     discord.getDiscordChannel.mockResolvedValue(notifsChannel)
     discord.getDiscordMessages.mockResolvedValueOnce([{content: expectedMessageContent}])
