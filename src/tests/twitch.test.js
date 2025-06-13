@@ -103,37 +103,37 @@ describe("sendLatestStreamMessage", () => {
     
   })
 
-  describe("Handles failure cases", () => {
-      beforeEach(() => {
-        jest.restoreAllMocks();
-          consoleErrorSpy = mockConsoleError();
-      })
+  describe("failure cases", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    mockConsoleError();
+  });
 
-      afterEach(() => {
-        consoleErrorSpy.mockRestore();
+    test.each([
+      [
+        "stream object not found",
+        async () => {
+          jest.spyOn(twitch, "getStream").mockResolvedValueOnce(null);
+          twitch._setCachedTwitchTokenObject(mockToken);
+          fetch.mockResolvedValueOnce(new Response(JSON.stringify({ data: [] }), { status: 200 }));
+        },
+        "[MOCKED_TIMESTAMP] Could not find live Hawker stream. Unable to send twitch message",
+      ],
+      [
+        "notification channel cannot be found",
+        async () => {
+          twitch._setCachedTwitchTokenObject(mockToken);
+          fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+          jest.spyOn(discord, "getDiscordChannel").mockResolvedValueOnce(null);
+        },
+        "[MOCKED_TIMESTAMP] There was an error getting stream notifs channel. Terminating sending message",
+      ],
+    ])("%s", async (_, setup, expectedError) => {
+      await setup();
+      await twitch.sendLatestStreamMessage();
+      expect(console.error).toHaveBeenCalledWith(expectedError);
     });
-    test("stream object not found", async () => {
-      jest.spyOn(twitch, "getStream").mockResolvedValueOnce(null);
-      twitch._setCachedTwitchTokenObject(mockToken)
-      fetch.mockResolvedValueOnce(new Response(JSON.stringify({data: []}), { status: 200 }));
-      await twitch.sendLatestStreamMessage();
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[MOCKED_TIMESTAMP] Could not find live Hawker stream. Unable to send twitch message"
-        );
-    })
-
-    test("notification channel cannot be found", async () => {
-      twitch._setCachedTwitchTokenObject(mockToken)
-      fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
-      jest.spyOn(discord, "getDiscordChannel").mockResolvedValueOnce(null)
-      await twitch.sendLatestStreamMessage();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[MOCKED_TIMESTAMP] There was an error getting stream notifs channel. Terminating sending message"
-        );
-    })
-  })
-    
+  });
 });
 
 describe("isStardewRelated", () => {
@@ -323,57 +323,43 @@ describe("getTwitchTokenObject", () => {
     expect(result.expirationTime).toBeGreaterThan(Date.now());
   });
 
-  //handles errors
-  describe("Handler Errors", () => {
-    let consoleErrorSpy;
-    beforeEach(() => {
-        fetch.mockReset();
-        consoleErrorSpy = mockConsoleError();
+  describe("error cases", () => {
+  let consoleErrorSpy;
+
+  beforeEach(() => {
+    consoleErrorSpy = mockConsoleError();
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
+    test.each([
+      [
+        "response is unsuccessful",
+        new Response(JSON.stringify(""), {
+          status: 400,
+          statusText: "statusText",
+          headers: { "Content-Type": "application/json" },
+        }),
+        "[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText",
+      ],
+      [
+        "twitchTokenObject json is falsy",
+        new Response(JSON.stringify(null), {
+          status: 200,
+          statusText: "statusText",
+          headers: { "Content-Type": "application/json" },
+        }),
+        "[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null",
+      ],
+    ])("%s", async (_, mockResponse, expectedError) => {
+      fetch.mockResolvedValueOnce(mockResponse);
+      const result = await twitch.getTwitchTokenObject();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expectedError);
+      expect(result).toBeNull();
     });
-
-    afterEach(() => {
-        consoleErrorSpy.mockRestore();
-    });
-
-    //response is unsuccessful
-    test("response is unsuccessful", async () => {
-
-        fetch.mockResolvedValueOnce(
-            new Response(JSON.stringify(""), {
-                status: 400,
-                statusText: "statusText",
-                headers: { "Content-Type": "application/json" },
-            })
-        )
-
-        const result = await twitch.getTwitchTokenObject();
-
-        expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText");
-
-        expect(result).toBeNull() 
-    })
-
-
-    //twitchTokenObject is falsy
-    test("twitchTokenObject json is falsy", async () => {
-        fetch.mockResolvedValueOnce(
-            new Response(JSON.stringify(null), {
-                status: 200,
-                statusText: "statusText",
-                headers: { "Content-Type": "application/json" },
-            })
-        )
-
-        const result = await twitch.getTwitchTokenObject();
-
-        expect(consoleErrorSpy).toHaveBeenCalledWith("[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null");
-
-        expect(result).toBeNull() 
-
-    })
-  })
-
-
+  });
 });
 
 describe("getCorrectRole", () => {
