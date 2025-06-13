@@ -45,6 +45,10 @@ const createMockToken = (overrides = {}) => ({
   ...overrides,
 });
 
+const mockFetchResponse = (data, status = 200) => 
+  fetch.mockResolvedValueOnce(new Response(JSON.stringify(data), { status }));
+
+
 
 const mockToken = createMockToken();
 const mockStreamData = createMockStreamData();
@@ -52,7 +56,7 @@ const mockStream = createMockStream();
 
 const setupValidTokenAndStreamFetch = () => {
   twitch._setCachedTwitchTokenObject(mockToken);
-  fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+  mockFetchResponse(mockStream)
 };
 
 
@@ -112,7 +116,7 @@ describe("sendLatestStreamMessage", () => {
         async () => {
           jest.spyOn(twitch, "getStream").mockResolvedValueOnce(null);
           twitch._setCachedTwitchTokenObject(mockToken);
-          fetch.mockResolvedValueOnce(new Response(JSON.stringify({ data: [] }), { status: 200 }));
+          mockFetchResponse({ data: [] })
         },
         `[${MOCK_TIMESTAMP}] Could not find live Hawker stream. Unable to send twitch message`,
       ],
@@ -177,7 +181,7 @@ describe("getStream", () => {
       expirationTime: futureTime
     }));
 
-    fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+    mockFetchResponse(mockStream)
 
     const result = await twitch.getStream();
 
@@ -244,14 +248,8 @@ describe("getStream", () => {
     });
     test("cachedTwitchTokenObject is null", async () => {
         jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(null);
-        fetch.mockResolvedValueOnce(new Response(JSON.stringify(null), {
-            status: 200,
-        }))
-
-        fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockToken), {
-            status: 200,
-        }))
-
+        mockFetchResponse(null, 200)
+        mockFetchResponse(mockToken, 200)
         const result = await twitch.getStream();
         expect(consoleErrorSpy).toHaveBeenCalledWith(
         `[${MOCK_TIMESTAMP}] Error getting twitch token object. Terminating getting stream`
@@ -278,10 +276,7 @@ describe("getStream", () => {
     })
     test("stream data length is 0", async () => {
         twitch._setCachedTwitchTokenObject(mockToken)
-        fetch.mockResolvedValueOnce(new Response(JSON.stringify({data: []}), {
-            status: 200,
-        }));
-
+        mockFetchResponse({data: []})
         const result = await twitch.getStream();
         expect(result).toBeNull();
         expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -299,16 +294,8 @@ describe("getTwitchTokenObject", () => {
   });
 
   test("Returns parsed token object with expirationTime", async () => {
-    
-
-    fetch.mockResolvedValueOnce(
-      new Response(JSON.stringify(mockToken), {
-        status: 200,
-      })
-    );
-
+    mockFetchResponse(mockToken)
     const result = await twitch.getTwitchTokenObject();
-
     expect(result).toHaveProperty("access_token", "abc123");
     expect(result).toHaveProperty("expirationTime");
     expect(result.expirationTime).toBeGreaterThan(Date.now());
