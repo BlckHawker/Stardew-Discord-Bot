@@ -26,16 +26,31 @@ const setupConsoleSpies = () => {
 
 const restoreConsoleSpies = (...spies) => spies.forEach(spy => spy.mockRestore());
 
-const mockToken = {
-      access_token: "abc123",
-      expires_in: 3600,
-      token_type: "bearer",
-    };
+const createMockStreamData = (overrides = {}) => ({
+  id: '1234',
+  title: 'Stream Title',
+  tags: [],
+  game_name: 'Some Game',
+  user_login: 'user_login',
+  ...overrides,
+});
 
-const mockStreamData = { id: '1234', title: 'Stream Title', tags: [], game_name: 'Some Game', user_login: "user_login" };
-const mockStream = {
-      data: [mockStreamData]
-    };
+const createMockStream = (overrides = {}) => ({
+  data: [createMockStreamData(overrides)],
+});
+
+const createMockToken = (overrides = {}) => ({
+  access_token: 'abc123',
+  expires_in: 3600,
+  token_type: 'bearer',
+  expirationTime: Date.now() + 10 * 60 * 1000, // 10 min in future by default
+  ...overrides,
+});
+
+const mockToken = createMockToken();
+const mockStreamData = createMockStreamData();
+const mockStream = createMockStream();
+
 
 
 beforeAll(() => {
@@ -124,22 +139,22 @@ describe("sendLatestStreamMessage", () => {
 describe("isStardewRelated", () => {
 
     test("returns true if title contains \"Stardew\"", () => {
-        const result = twitch.isStardewRelated({title: "stardew"})
+        const result = twitch.isStardewRelated(createMockStreamData({title: "stardew"}))
         expect(result).toBeTruthy()
     }) 
 
     test("returns true if there is at least one tag that contains \"Stardew\"", () => {
-        const result = twitch.isStardewRelated({title: "", tags: ["stardew"]})
+        const result = twitch.isStardewRelated(createMockStreamData({tags: ["stardew"]}))
         expect(result).toBeTruthy()
     })
     
     test("returns true if game name is \"Stardew Valley\"", () => {
-        const result = twitch.isStardewRelated({title: "", tags: [], game_name: "Stardew Valley"})
+        const result = twitch.isStardewRelated(createMockStreamData({game_name: "Stardew Valley"}))
         expect(result).toBeTruthy()
     })
     
     test("return false if  title, tags, nor game name doesn't match \"Stardew Valley\"", () => {
-        const result = twitch.isStardewRelated({title: "", tags: [], game_name: ""})
+        const result = twitch.isStardewRelated(createMockStreamData())
         expect(result).toBeFalsy()
     })
 
@@ -163,10 +178,12 @@ describe("getStream", () => {
 
   test("Uses cached token if still valid", async  () => {
     const futureTime = Date.now() + 10 * 60 * 1000;
-    twitch._setCachedTwitchTokenObject({
+
+    twitch._setCachedTwitchTokenObject(
+      createMockToken({
       access_token: 'valid-token',
       expirationTime: futureTime
-    });
+    }));
 
     fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
 
@@ -181,22 +198,24 @@ describe("getStream", () => {
   })
   test("Refreshes token when expired", async () => {
 
-    twitch._setCachedTwitchTokenObject(({
+    twitch._setCachedTwitchTokenObject(
+      createMockToken({
       access_token: 'valid-token',
       expirationTime: 0
     }));
 
-    jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce({
-      access_token: "abc123",
-      expirationTime: Date.now() + 10 * 60 * 1000,
-      token_type: "bearer",
-    });
+    jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(
+      createMockToken()
+    );
+
+    jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(
+      createMockToken({expirationTime: Date.now() + 10 * 60 * 1000})
+    );
 
     fetch.mockResolvedValue({
         status: 200,
         json: async () => mockStream,
     });
-
 
     const result = await twitch.getStream();
 
