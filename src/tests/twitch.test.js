@@ -32,8 +32,9 @@ const mockToken = {
       token_type: "bearer",
     };
 
+const mockStreamData = { id: '1234', title: 'Stream Title', tags: [], game_name: 'Some Game', user_login: "user_login" };
 const mockStream = {
-      data: [{ id: '1234', title: 'Stream Title', tags: [], game_name: 'Some Game', user_login: "user_login" }]
+      data: [mockStreamData]
     };
 
 process.env = {
@@ -65,12 +66,12 @@ describe("sendLatestStreamMessage", () => {
 
   test("Doesn't resend message if it's already cached", async () => {
 
-     const expectedMessageContent = `<@&${twitch.getCorrectRole()}>\nHawker is live on twitch!\nStarted streaming at ${utils.convertIsoToDiscordTimestamp()}\nTitle: **${mockStream.data[0].title}**\nWatch here: https://www.twitch.tv/${mockStream.data[0].user_login}`;
+     const expectedMessageContent = `<@&${twitch.getCorrectRole()}>\nHawker is live on twitch!\nStarted streaming at ${utils.convertIsoToDiscordTimestamp()}\nTitle: **${mockStreamData.title}**\nWatch here: https://www.twitch.tv/${mockStreamData.user_login}`;
 
     const notifsChannel = {name: "channel name", id: "id" }
     twitch._setCachedNotifsChannel(notifsChannel)
     twitch._setCachedTwitchTokenObject(mockToken)
-    jest.spyOn(twitch, "getStream").mockResolvedValue(mockStream.data[0]);
+    jest.spyOn(twitch, "getStream").mockResolvedValue(mockStreamData);
     jest.spyOn(twitch, "getCorrectRole").mockReturnValueOnce("role")
     discord.getDiscordChannel.mockResolvedValue(notifsChannel)
     discord.getDiscordMessages.mockResolvedValueOnce([{content: expectedMessageContent}])
@@ -78,7 +79,7 @@ describe("sendLatestStreamMessage", () => {
 
     await twitch.sendLatestStreamMessage()
     expect(consoleLogSpy).toHaveBeenCalledWith(
-        `[MOCKED_TIMESTAMP] Stream (id ${mockStream.data[0].id}) has already been announced in #${notifsChannel.name} at READABLE. Terminating sending stream notification`
+        `[MOCKED_TIMESTAMP] Stream (id ${mockStreamData.id}) has already been announced in #${notifsChannel.name} at READABLE. Terminating sending stream notification`
         );
 
 
@@ -169,7 +170,7 @@ describe("getStream", () => {
 
     const result = await twitch.getStream();
 
-    expect(result).toEqual(mockStream.data[0]);
+    expect(result).toEqual(mockStreamData);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       "[MOCKED_TIMESTAMP] Current time is more than 5 minutes before expiration time. Using cached token"
@@ -197,7 +198,7 @@ describe("getStream", () => {
 
     const result = await twitch.getStream();
 
-    expect(result).toEqual(mockStream.data[0]);
+    expect(result).toEqual(mockStreamData);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       "[MOCKED_TIMESTAMP] Current time is less than 5 minutes before expiration time. Getting new token"
@@ -213,7 +214,7 @@ describe("getStream", () => {
 
     const result = await twitch.getStream();
 
-    expect(result).toEqual(mockStream.data[0]);
+    expect(result).toEqual(mockStreamData);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
         "[MOCKED_TIMESTAMP] Successfully got stream data"
