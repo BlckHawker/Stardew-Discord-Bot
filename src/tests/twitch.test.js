@@ -61,12 +61,6 @@ const setupValidTokenAndStreamFetch = () => {
 
 
 
-const ERRORS = {
-  NO_STREAM: `[${MOCK_TIMESTAMP}] Could not find live Hawker stream`
-};
-
-
-
 
 beforeAll(() => {
   process.env.TWITCH_CLIENT_ID = "test-client-id",
@@ -130,7 +124,7 @@ describe("sendLatestStreamMessage", () => {
           twitch._setCachedTwitchTokenObject(mockToken);
           fetch.mockResolvedValueOnce(new Response(JSON.stringify({ data: [] }), { status: 200 }));
         },
-        `${ERRORS.NO_STREAM}. Unable to send twitch message`,
+        `[${MOCK_TIMESTAMP}] Could not find live Hawker stream. Unable to send twitch message`,
       ],
       [
         "notification channel cannot be found",
@@ -305,7 +299,7 @@ describe("getStream", () => {
         const result = await twitch.getStream();
         expect(result).toBeNull();
         expect(consoleErrorSpy).toHaveBeenCalledWith(
-        ERRORS.NO_STREAM
+        `[${MOCK_TIMESTAMP}] Could not find live Hawker stream`
         );
     })
   })
