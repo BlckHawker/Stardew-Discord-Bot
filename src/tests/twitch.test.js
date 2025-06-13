@@ -48,9 +48,16 @@ const createMockToken = (overrides = {}) => ({
   ...overrides,
 });
 
+
 const mockToken = createMockToken();
 const mockStreamData = createMockStreamData();
 const mockStream = createMockStream();
+
+const setupValidTokenAndStreamFetch = () => {
+  twitch._setCachedTwitchTokenObject(mockToken);
+  fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+};
+
 
 
 const ERRORS = {
@@ -94,12 +101,11 @@ describe("sendLatestStreamMessage", () => {
 
     const notifsChannel = {name: "channel name", id: "id" }
     twitch._setCachedNotifsChannel(notifsChannel)
-    twitch._setCachedTwitchTokenObject(mockToken)
     jest.spyOn(twitch, "getStream").mockResolvedValue(mockStreamData);
     jest.spyOn(twitch, "getCorrectRole").mockReturnValueOnce("role")
     discord.getDiscordChannel.mockResolvedValue(notifsChannel)
     discord.getDiscordMessages.mockResolvedValueOnce([{content: expectedMessageContent}])
-    fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }))
+    setupValidTokenAndStreamFetch();
 
     await twitch.sendLatestStreamMessage()
     expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -128,8 +134,7 @@ describe("sendLatestStreamMessage", () => {
       [
         "notification channel cannot be found",
         async () => {
-          twitch._setCachedTwitchTokenObject(mockToken);
-          fetch.mockResolvedValueOnce(new Response(JSON.stringify(mockStream), { status: 200 }));
+          setupValidTokenAndStreamFetch();
           jest.spyOn(discord, "getDiscordChannel").mockResolvedValueOnce(null);
         },
         "[MOCKED_TIMESTAMP] There was an error getting stream notifs channel. Terminating sending message",
