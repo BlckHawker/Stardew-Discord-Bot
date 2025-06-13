@@ -59,13 +59,14 @@ const setupValidTokenAndStreamFetch = () => {
 
 
 beforeAll(() => {
-  process.env.TWITCH_CLIENT_ID = "test-client-id",
-  process.env.TWITCH_CLIENT_SECRET = "test-secret",
-  process.env.TWITCH_USER_ID = "hawker-id",
-  process.env.STREAM_NOTIFS_CHANNEL_ID = "channel-id",
-  process.env.TWITCH_STARDEW_STREAM_ROLE = "stardew-role-id",
-  process.env.TWITCH_OTHER_STREAM_ROLE = "other-role-id"
-  
+  Object.assign(process.env, {
+    TWITCH_CLIENT_ID: "test-client-id",
+    TWITCH_CLIENT_SECRET: "test-secret",
+    TWITCH_USER_ID: "hawker-id",
+    STREAM_NOTIFS_CHANNEL_ID: "channel-id",
+    TWITCH_STARDEW_STREAM_ROLE: "stardew-role-id",
+    TWITCH_OTHER_STREAM_ROLE: "other-role-id",
+  });
 });
 
 describe("sendLatestStreamMessage", () => {
@@ -101,14 +102,10 @@ describe("sendLatestStreamMessage", () => {
     await twitch.sendLatestStreamMessage()
     expect(consoleLogSpy).toHaveBeenCalledWith(
         `[${MOCK_TIMESTAMP}] Stream (id ${mockStreamData.id}) has already been announced in #${notifsChannel.name} at READABLE. Terminating sending stream notification`
-        );
-
-
-    
+    );    
   })
 
   describe("failure cases", () => {
-
     test.each([
       [
         "stream object not found",
