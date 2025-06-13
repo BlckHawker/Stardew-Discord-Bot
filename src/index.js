@@ -27,32 +27,29 @@ const client = new Discord.Client({
     ]
 })
 
-client.on("messageCreate", (message) => {
-    if(message.content.toUpperCase() === "TW") {
-        twitch.sendLatestStreamMessage(client)
-    }
-
-})
-
-
 // When the bot first initializes
 client.on("ready", (c) => {
     console.log(`${c.user.tag} is online`);
 
-    // // every hour, check if there is a new ICC beta release
-    // const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
-    //     ICCCGithub.getLatestICCCBetaRelease(client);
-    // });
 
-    // //every hour, check if a new youtube video release
-    // const youtubeRelease = new cron.CronJob('0 */1 * * *', () => {
-    //     youtube.sendLatestVideoMessage(client);
-    // });
+    // every hour, check if there is a new ICC beta release
+    const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
+        ICCCGithub.getLatestICCCBetaRelease(client);
+    });
 
-    // ICCCBetaTestReleaseJob.start();
-    // youtubeRelease.start();
+    //every hour, check if a new youtube video release
+    const youtubeRelease = new cron.CronJob('0 */1 * * *', () => {
+        youtube.sendLatestVideoMessage(client);
+    });
 
-    
+    // every hour, check if hawker is streaming on twitch
+    const twitchJob = new cron.CronJob('0 */1 * * *', () => {
+        twitch.sendLatestStreamMessage(client);
+    });
+
+    ICCCBetaTestReleaseJob.start();
+    youtubeRelease.start();
+    twitchJob.start();
 });
 
 client.login(process.env.DISCORD_TOKEN);
