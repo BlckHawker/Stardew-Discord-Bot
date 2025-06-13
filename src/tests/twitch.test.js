@@ -137,28 +137,24 @@ describe("sendLatestStreamMessage", () => {
 });
 
 describe("isStardewRelated", () => {
+    describe("true cases", () => {
+      const cases = [
+      ["title contains 'stardew'", { title: "stardew" }],
+      ["tags contains 'stardew'", { tags: ["stardew"] }],
+      ["game_name is 'Stardew Valley'", { game_name: "Stardew Valley" }],
+    ];
 
-    test("returns true if title contains \"Stardew\"", () => {
-        const result = twitch.isStardewRelated(createMockStreamData({title: "stardew"}))
-        expect(result).toBeTruthy()
-    }) 
+    test.each(cases)("returns true if %s", (_, overrides) => {
+      const result = twitch.isStardewRelated(createMockStreamData(overrides));
+      expect(result).toBeTruthy();
+    });
 
-    test("returns true if there is at least one tag that contains \"Stardew\"", () => {
-        const result = twitch.isStardewRelated(createMockStreamData({tags: ["stardew"]}))
-        expect(result).toBeTruthy()
-    })
-    
-    test("returns true if game name is \"Stardew Valley\"", () => {
-        const result = twitch.isStardewRelated(createMockStreamData({game_name: "Stardew Valley"}))
-        expect(result).toBeTruthy()
-    })
-    
-    test("return false if  title, tags, nor game name doesn't match \"Stardew Valley\"", () => {
-        const result = twitch.isStardewRelated(createMockStreamData())
-        expect(result).toBeFalsy()
     })
 
-
+    test("returns false if no matching data", () => {
+      const result = twitch.isStardewRelated(createMockStreamData());
+      expect(result).toBeFalsy();
+    });
 });
 
 describe("getStream", () => {
