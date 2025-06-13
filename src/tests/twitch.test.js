@@ -14,7 +14,7 @@ const discord = require("../apiCalls/discordCalls")
 
 const twitch = require("../apiCalls/twitch");
 
-const setupConsoleErrorMock = () => {
+const mockConsoleError = () => {
   return jest.spyOn(console, "error").mockImplementation(() => {});
 };
 
@@ -89,7 +89,7 @@ describe("sendLatestStreamMessage", () => {
   describe("Handles failure cases", () => {
       beforeEach(() => {
         jest.restoreAllMocks();
-          consoleErrorSpy = setupConsoleErrorMock();
+          consoleErrorSpy = mockConsoleError();
       })
 
       afterEach(() => {
@@ -311,7 +311,7 @@ describe("getTwitchTokenObject", () => {
     let consoleErrorSpy;
     beforeEach(() => {
         fetch.mockReset();
-        consoleErrorSpy = setupConsoleErrorMock();
+        consoleErrorSpy = mockConsoleError();
     });
 
     afterEach(() => {
