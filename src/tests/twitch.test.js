@@ -16,10 +16,6 @@ const discord = require("../apiCalls/discordCalls")
 
 const twitch = require("../apiCalls/twitch");
 
-const mockConsoleError = () => {
-  return jest.spyOn(console, "error").mockImplementation(() => {});
-};
-
 const setupConsoleSpies = () => {
   const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -112,9 +108,6 @@ describe("sendLatestStreamMessage", () => {
   })
 
   describe("failure cases", () => {
-  beforeEach(() => {
-    mockConsoleError();
-  });
 
     test.each([
       [
@@ -205,10 +198,6 @@ describe("getStream", () => {
       access_token: 'valid-token',
       expirationTime: 0
     }));
-
-    jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(
-      createMockToken()
-    );
 
     jest.spyOn(twitch, "getTwitchTokenObject").mockResolvedValueOnce(
       createMockToken({expirationTime: Date.now() + 10 * 60 * 1000})
@@ -332,11 +321,11 @@ describe("getTwitchTokenObject", () => {
   let consoleErrorSpy;
 
   beforeEach(() => {
-    consoleErrorSpy = mockConsoleError();
+    ({ consoleErrorSpy } = setupConsoleSpies());
   });
 
   afterEach(() => {
-    consoleErrorSpy.mockRestore();
+    restoreConsoleSpies()
   });
 
     test.each([
