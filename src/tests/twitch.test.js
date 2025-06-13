@@ -1,8 +1,9 @@
 const fetch = require("node-fetch");
 jest.mock("node-fetch");
 const { Response } = jest.requireActual("node-fetch");
+const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 jest.mock("../utils", () => ({
-  getTimeStamp: jest.fn(() => "MOCKED_TIMESTAMP"),
+  getTimeStamp: jest.fn(() => MOCK_TIMESTAMP),
   convertIsoToDiscordTimestamp: jest.fn((iso) => `DISCORD_TIMESTAMP()`),
   convertUnixTimestampToReadableTimestamp: jest.fn((ts) => 'READABLE'),
 }));
@@ -61,7 +62,7 @@ const setupValidTokenAndStreamFetch = () => {
 
 
 const ERRORS = {
-  NO_STREAM: "[MOCKED_TIMESTAMP] Could not find live Hawker stream"
+  NO_STREAM: `[${MOCK_TIMESTAMP}] Could not find live Hawker stream`
 };
 
 
@@ -109,7 +110,7 @@ describe("sendLatestStreamMessage", () => {
 
     await twitch.sendLatestStreamMessage()
     expect(consoleLogSpy).toHaveBeenCalledWith(
-        `[MOCKED_TIMESTAMP] Stream (id ${mockStreamData.id}) has already been announced in #${notifsChannel.name} at READABLE. Terminating sending stream notification`
+        `[${MOCK_TIMESTAMP}] Stream (id ${mockStreamData.id}) has already been announced in #${notifsChannel.name} at READABLE. Terminating sending stream notification`
         );
 
 
@@ -137,7 +138,7 @@ describe("sendLatestStreamMessage", () => {
           setupValidTokenAndStreamFetch();
           jest.spyOn(discord, "getDiscordChannel").mockResolvedValueOnce(null);
         },
-        "[MOCKED_TIMESTAMP] There was an error getting stream notifs channel. Terminating sending message",
+        `[${MOCK_TIMESTAMP}] There was an error getting stream notifs channel. Terminating sending message`,
       ],
     ])("%s", async (_, setup, expectedError) => {
       await setup();
@@ -199,7 +200,7 @@ describe("getStream", () => {
     expect(result).toEqual(mockStreamData);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
-      "[MOCKED_TIMESTAMP] Current time is more than 5 minutes before expiration time. Using cached token"
+      `[${MOCK_TIMESTAMP}] Current time is more than 5 minutes before expiration time. Using cached token`
     );
 
   })
@@ -229,7 +230,7 @@ describe("getStream", () => {
     expect(result).toEqual(mockStreamData);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
-      "[MOCKED_TIMESTAMP] Current time is less than 5 minutes before expiration time. Getting new token"
+      `[${MOCK_TIMESTAMP}] Current time is less than 5 minutes before expiration time. Getting new token`
     );
   })
 
@@ -245,7 +246,7 @@ describe("getStream", () => {
     expect(result).toEqual(mockStreamData);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
-        "[MOCKED_TIMESTAMP] Successfully got stream data"
+        `[${MOCK_TIMESTAMP}] Successfully got stream data`
     );
 
   })
@@ -273,7 +274,7 @@ describe("getStream", () => {
 
         const result = await twitch.getStream();
         expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[MOCKED_TIMESTAMP] Error getting twitch token object. Terminating getting stream"
+        `[${MOCK_TIMESTAMP}] Error getting twitch token object. Terminating getting stream`
         );
         expect(result).toBeNull()
 
@@ -290,7 +291,7 @@ describe("getStream", () => {
 
         expect(result).toBeNull();
         expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[MOCKED_TIMESTAMP] Error getting latest twitch stream. Status 400 Mock Error"
+        `[${MOCK_TIMESTAMP}] Error getting latest twitch stream. Status 400 Mock Error`
         );
         
 
@@ -352,7 +353,7 @@ describe("getTwitchTokenObject", () => {
           statusText: "statusText",
           headers: { "Content-Type": "application/json" },
         }),
-        "[MOCKED_TIMESTAMP] Error getting twitch token. Status 400 statusText",
+        `[${MOCK_TIMESTAMP}] Error getting twitch token. Status 400 statusText`,
       ],
       [
         "twitchTokenObject json is falsy",
@@ -361,7 +362,7 @@ describe("getTwitchTokenObject", () => {
           statusText: "statusText",
           headers: { "Content-Type": "application/json" },
         }),
-        "[MOCKED_TIMESTAMP] Error parsing twitch token object. Object came as null",
+        `[${MOCK_TIMESTAMP}] Error parsing twitch token object. Object came as null`,
       ],
     ])("%s", async (_, mockResponse, expectedError) => {
       fetch.mockResolvedValueOnce(mockResponse);
