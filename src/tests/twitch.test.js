@@ -45,8 +45,13 @@ const createMockToken = (overrides = {}) => ({
   ...overrides,
 });
 
-const mockFetchResponse = (data, status = 200) => 
-  fetch.mockResolvedValueOnce(new Response(JSON.stringify(data), { status }));
+const mockFetchResponse = (data, options = {}) =>  {
+  const defaultOptions = {
+    status: 200,
+    ...options,
+  };
+  return fetch.mockResolvedValueOnce(new Response(JSON.stringify(data), defaultOptions));
+}
 
 
 
@@ -260,10 +265,10 @@ describe("getStream", () => {
 
     test("response is unsuccessful", async () => {
         twitch._setCachedTwitchTokenObject(mockToken)
-        fetch.mockResolvedValueOnce(new Response(JSON.stringify(null), {
+        mockFetchResponse(null, {
             status: 400,
             statusText: "Mock Error"
-        }));
+        })
 
         const result = await twitch.getStream();
 
