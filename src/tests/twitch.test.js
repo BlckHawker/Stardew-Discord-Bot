@@ -53,8 +53,6 @@ const mockFetchResponse = (data, options = {}) =>  {
   return fetch.mockResolvedValueOnce(new Response(JSON.stringify(data), defaultOptions));
 }
 
-
-
 const mockToken = createMockToken();
 const mockStreamData = createMockStreamData();
 const mockStream = createMockStream();
@@ -63,8 +61,6 @@ const setupValidTokenAndStreamFetch = () => {
   twitch._setCachedTwitchTokenObject(mockToken);
   mockFetchResponse(mockStream)
 };
-
-
 
 
 beforeAll(() => {
@@ -276,8 +272,6 @@ describe("getStream", () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(
         `[${MOCK_TIMESTAMP}] Error getting latest twitch stream. Status 400 Mock Error`
         );
-        
-
     })
     test("stream data length is 0", async () => {
         twitch._setCachedTwitchTokenObject(mockToken)
@@ -289,7 +283,6 @@ describe("getStream", () => {
         );
     })
   })
-  
 });
 
 describe("getTwitchTokenObject", () => {
