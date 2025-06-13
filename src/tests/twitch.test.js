@@ -6,6 +6,7 @@ jest.mock("../utils", () => ({
   convertIsoToDiscordTimestamp: jest.fn((iso) => `DISCORD_TIMESTAMP()`),
   convertUnixTimestampToReadableTimestamp: jest.fn((ts) => 'READABLE'),
 }));
+jest.useFakeTimers().setSystemTime(new Date("2025-01-01T00:00:00Z"));
 
 const utils = require("../utils");
 
