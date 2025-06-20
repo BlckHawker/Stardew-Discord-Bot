@@ -1,3 +1,7 @@
+test("", () => {
+  expect(true).toBeTruthy()
+})
+
 require("dotenv").config();
 const fetch = require("node-fetch");
 const utils = require("../utils");
