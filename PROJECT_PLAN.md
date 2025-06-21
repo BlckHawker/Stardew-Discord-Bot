@@ -44,24 +44,24 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 | **1.2 - Other Twitch Streams**   | Notify in “stream-notifs” channel when Hawker streams **non-Stardew** content. | As a discord user with the “Other Stream notifs” role, I want to be notified in the “stream-notifs” channel when Hawker goes live on Twitch about a stream that is not related to Stardew so that I can join the stream live. |
 
 #### 1.1 - Stardew Twitch Acceptance Criteria
-- [ ] Given Hawker starts stream on Twitch:
-  - [ ] If the stream title contains the word “Stardew” (regardless of capitalization), the bot will not detect the stream.
-  - [ ] If the stream has the tag “Stardew” or “Stardew Valley” (regardless of capitalization), the bot will not detect the stream.
-  - [ ] If the stream’s game category is set to “Stardew Valley” (regardless of capitalization), the bot will not detect the stream.
-  - [ ] The bot shall should detect streams that do not meet any of the above criteria
-  - [ ] When a stream starts, the bot pings “Other Stream notifs” in the “stream-notifs” channel
-  - [ ] The message a link to the stream and a custom message “Hawker is live: ” followed by the name of the stream in bolded letters
-  - [ ] The bot must not duplicate pings for the same stream session.
+- [x] Given Hawker starts stream on Twitch:
+  - [x] If the stream title contains the word “Stardew” (regardless of capitalization), the bot will not detect the stream.
+  - [x] If the stream has the tag “Stardew” or “Stardew Valley” (regardless of capitalization), the bot will not detect the stream.
+  - [x] If the stream’s game category is set to “Stardew Valley” (regardless of capitalization), the bot will not detect the stream.
+  - [x] The bot shall should detect streams that do not meet any of the above criteria
+  - [x] When a stream starts, the bot pings “Other Stream notifs” in the “stream-notifs” channel
+  - [x] The message a link to the stream and a custom message “Hawker is live: ” followed by the name of the stream in bolded letters
+  - [x] The bot must not duplicate pings for the same stream session.
 
 #### 1.2 - Other Twitch Streams Acceptance Criteria
-- [ ] Given Hawker starts stream on Twitch
-  - [ ] If the stream title contains the word “Stardew” (regardless of capitalization), the bot will not detect the stream
-  - [ ] If the stream has the tag “Stardew” or “Stardew Valley” (regardless of capitalization), the bot will not detect the stream
-  - [ ] If the stream’s game category is set to “Stardew Valley” (regardless of capitalization), the bot will not detect the stream
-  - [ ] The bot shall detect streams that do not meet any of the above criteria
-  - [ ] When a stream starts, the bot pings “Other Stream notifs” in the “stream-notifs” channel
-  - [ ] The message includes a link to the stream and a custom message “Hawker is live: ” followed by the name of the stream in **bolded letters**
-  - [ ] The bot must not duplicate pings for the same stream session
+- [x] Given Hawker starts stream on Twitch
+  - [x] If the stream title contains the word “Stardew” (regardless of capitalization), the bot will not detect the stream
+  - [x] If the stream has the tag “Stardew” or “Stardew Valley” (regardless of capitalization), the bot will not detect the stream
+  - [x] If the stream’s game category is set to “Stardew Valley” (regardless of capitalization), the bot will not detect the stream
+  - [x] The bot shall detect streams that do not meet any of the above criteria
+  - [x] When a stream starts, the bot pings “Other Stream notifs” in the “stream-notifs” channel
+  - [x] The message includes a link to the stream and a custom message “Hawker is live: ” followed by the name of the stream in **bolded letters**
+  - [x] The bot must not duplicate pings for the same stream session
 ---
 
 ### Epic 2: YouTube Integration
@@ -70,26 +70,26 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 | **2.1 - Stardew YouTube Videos** | Notify in “upload-notifs” channel when Hawker uploads **Stardew-related** videos. | As a Discord user, I want to be notified when a new video related to Stardew Valley is uploaded to Hawker’s YouTube channel, so I can watch the content as soon as possible.                                         |
 | **2.2 - Other YouTube Videos**   | Notify in “upload-notifs” channel when Hawker uploads **non-Stardew** videos.     | As a Discord user with the “Other Upload notifs” role, I want to be notified when a new video not related to Stardew Valley is uploaded to Hawker’s YouTube channel, so I can watch the content as soon as possible. |
 #### 2.1 - Stardew YouTube videos Acceptance Criteria
-- [ ] Given Hawker makes a video public on their YouTube channel
-  - [ ] If the video has the word “Stardew” (regardless of capitalization) in the title, the bot shall detect the video
-  - [ ] If the video has the word “Stardew” (regardless of capitalization) in the description, the bot shall detect the video
-  - [ ] If the video has the word “Stardew” (regardless of capitalization) as a tag, the bot shall detect the video
-  - [ ] If the video has the game “Stardew Valley” attached to it, the bot shall detect the video
-  - [ ] The bot should not detect videos that do not meet any of the above criteria
-- [ ] When the bot detects a video, the bot pings “Stardew Upload notifs” in the “upload-notifs” channel
-- [ ] The message includes a link to the video, and a custom message “Hawker has uploaded a new video: ” followed by the name of the video in **bolded letters**
-- [ ] The bot should avoid duplicate notifications for the same video
+- [x] Given Hawker makes a video public on their YouTube channel
+  - [x] If the video has the word “Stardew” (regardless of capitalization) in the title, the bot shall detect the video
+  - [x] If the video has the word “Stardew” (regardless of capitalization) in the description, the bot shall detect the video
+  - [x] If the video has the word “Stardew” (regardless of capitalization) as a tag, the bot shall detect the video
+  - [x] If the video has the game “Stardew Valley” attached to it, the bot shall detect the video
+  - [x] The bot should not detect videos that do not meet any of the above criteria
+- [x] When the bot detects a video, the bot pings “Stardew Upload notifs” in the “upload-notifs” channel
+- [x] The message includes a link to the video, and a custom message “Hawker has uploaded a new video: ” followed by the name of the video in **bolded letters**
+- [x] The bot should avoid duplicate notifications for the same video
 
 #### 2.2 - Other YouTube videos Acceptance Criteria
-- [ ] Given Hawker makes a video public on their YouTube channel:
-    - [ ] If the video has the word “Stardew” (regardless of capitalization) in the title, the bot shall not detect the video
-    - [ ] If the video has the word “Stardew” (regardless of capitalization) in the description, the bot shall detect the video
-    - [ ] If the video has the word “Stardew” (regardless of capitalization) as a tag, the bot shall not detect the video
-    - [ ] If the video has the game “Stardew Valley” attached to it, the bot shall not detect the video
-    - [ ] The bot should detect videos that do not meet any of the above criteria
-    - [ ] When the bot detects a video, the bot pings “Other Upload notifs” in the “upload-notifs” channel
-    - [ ] The message includes a link to the video and a custom message “Hawker has uploaded a new video: ” followed by the name of the video in **bolded letters**
-    - [ ] The bot should avoid duplicate notifications for the same video
+- [x] Given Hawker makes a video public on their YouTube channel:
+    - [x] If the video has the word “Stardew” (regardless of capitalization) in the title, the bot shall not detect the video
+    - [x] If the video has the word “Stardew” (regardless of capitalization) in the description, the bot shall detect the video
+    - [x] If the video has the word “Stardew” (regardless of capitalization) as a tag, the bot shall not detect the video
+    - [x] If the video has the game “Stardew Valley” attached to it, the bot shall not detect the video
+    - [x] The bot should detect videos that do not meet any of the above criteria
+    - [x] When the bot detects a video, the bot pings “Other Upload notifs” in the “upload-notifs” channel
+    - [x] The message includes a link to the video and a custom message “Hawker has uploaded a new video: ” followed by the name of the video in **bolded letters**
+    - [x] The bot should avoid duplicate notifications for the same video
 ---
 
 ### Epic 3: GitHub Monitoring
@@ -98,12 +98,12 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 | **3.1 - ICCC Beta Test** | Notify in “beta-test-release” channel when a **beta** build is released on ICCC’s GitHub repo. | As an ICCC beta tester, I want to be notified when a new beta build is published on Github, so I can test the latest changes. |
 
 #### 3.1 - ICCC Beta Test Acceptance Criteria
-- [ ] The bot monitors ICCC’s Github repository release
-    - [ ] When a new release is published with “beta” (not case-sensitive) in the name, a message will be sent in ICCC’s “beta-test-release” channel
-    - [ ] The message will have the following:
-        - [ ] The role “ICCC beta tester”
-        - [ ] A link to the release including the version number and changelog
-        - [ ] A message notifying users of the release like “Hawker released a new test build for ICC.”
+- [x] The bot monitors ICCC’s Github repository release
+    - [x] When a new release is published with “beta” (not case-sensitive) in the name, a message will be sent in ICCC’s “beta-test-release” channel
+    - [x] The message will have the following:
+        - [x] The role “ICCC beta tester”
+        - [x] A link to the release including the version number and changelog
+        - [x] A message notifying users of the release like “Hawker released a new test build for ICC.”
 ---
 
 ### Epic 4: Nexus Mod Releases
@@ -113,12 +113,12 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 | **4.2 - New Stardew Mods Release** | Notify in “nexus-mod-release-notifs” when new Stardew mods are released on Nexus. | As a mod user, I want to know when Hawker releases a new mod to Nexus, so I can download it.                                              |
 
 #### 4.1 - ICCC Nexus Update Acceptance Criteria
-- [ ] The bot checks the ICCC page on Nexus regularly for version updates
-    - [ ] When a new mod version of ICCC is released, the bot sends a message to ICCC’s “mod-release-notifs” channel
-    - [ ] The message will include:
-        - [ ] The role “ICCC”
-        - [ ] A link to the mod on Nexus
-        - [ ] A message describing the release “A new version of ICCC has been released on Nexus (**version number in bold letters**).”
+- [x] The bot checks the ICCC page on Nexus regularly for version updates
+    - [x] When a new mod version of ICCC is released, the bot sends a message to ICCC’s “mod-release-notifs” channel
+    - [x] The message will include:
+        - [x] The role “ICCC”
+        - [x] A link to the mod on Nexus
+        - [x] A message describing the release “A new version of ICCC has been released on Nexus (**version number in bold letters**).”
 
 #### 4.2 - New Stardew Mods Release* Acceptance Criteria
 - [ ] The bot checks Hawker’s profile to see if they uploaded a new mod
@@ -136,34 +136,34 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 | **5.2 - Documentation** | Maintain complete onboarding and contribution guidelines in the project’s README. | As a bot maintainer, I want written documentation of the purpose of this project and how onboarding members can contribute to it, so I can have a smooth time incorporating new features into the main bot |
 
 #### 5.1 - Staging Acceptance Criteria
-- [ ] A separate server that mirrors the official one is created.
+- [x] A separate server that mirrors the official one is created.
 
-- [ ] A separate instance of the bot is hosted for testing purposes and is added to the test server.
+- [x] A separate instance of the bot is hosted for testing purposes and is added to the test server.
 
-- [ ] When a new feature is in development, it must have unit tests and all unit tests must pass in order to be cleared for deployment.
+- [x] When a new feature is in development, it must have unit tests and all unit tests must pass in order to be cleared for deployment.
 
 #### 5.2 - Documentation Acceptance Criteria
-- [ ] The github repository will have the following branches:
-    - [ ] **main:** where the deployed version of the bot will be running. Only bot maintainers (currently only Hawker) have push access to this branch. No one is allowed to target this branch with a PR. All features should come off this branch.
-    - [ ] **development:** where PRs will target. This will be where code reviews will be done. Only one PR will be accepted at a time. Another PR cannot be accepted until the staging branch is up to date with this branch. Only Hawker will accept PRs to this branch.
-    - [ ] **staging:** where the test version of the bot will be running. This is the last stage of a feature until it’s pushed to main. Only Hawker will have push access to this branch. No one is allowed to target this branch with a PR.
-- [ ] The project will have a readme that will contain the following:
-    - [ ] A brief description that explains the purpose of this project
-    - [ ] A section for people who are interested in the server:
-        - [ ] A brief description of the server
-        - [ ] An invite link to the server
-        - [ ] Images of the bot working
-    - [ ] A section for people who are interested in developing this bot. This will contain the following:
-        - [ ] The current node version packages of the project
-        - [ ] Instructions on how to create a PR:
-            - [ ] Copy off the main branch
-            - [ ] Implement your changes
-            - [ ] Add unit tests (if applicable)
-            - [ ] Make a PR targeting development
-            - [ ] PR must have a description briefly explaining the changes
-            - [ ] If it is a bug fix, there must be steps on how to reproduce the bug, the expected outcome, and the current outcome
-            - [ ] If it is an additional feature, there must be steps on how to get the feature to work
-            - [ ] Pictures / gifs are optional, but preferred
+- [x] The github repository will have the following branches:
+    - [x] **main:** where the deployed version of the bot will be running. Only bot maintainers (currently only Hawker) have push access to this branch. No one is allowed to target this branch with a PR. All features should come off this branch.
+    - [x] **development:** where PRs will target. This will be where code reviews will be done. Only one PR will be accepted at a time. Another PR cannot be accepted until the staging branch is up to date with this branch. Only Hawker will accept PRs to this branch.
+    - [x] **staging:** where the test version of the bot will be running. This is the last stage of a feature until it’s pushed to main. Only Hawker will have push access to this branch. No one is allowed to target this branch with a PR.
+- [x] The project will have a readme that will contain the following:
+    - [x] A brief description that explains the purpose of this project
+    - [x] A section for people who are interested in the server:
+        - [x] A brief description of the server
+        - [x] An invite link to the server
+        - [x] Images of the bot working
+    - [x] A section for people who are interested in developing this bot. This will contain the following:
+        - [x] The current node version packages of the project
+        - [x] Instructions on how to create a PR:
+            - [x] Copy off the main branch
+            - [x] Implement your changes
+            - [x] Add unit tests (if applicable)
+            - [x] Make a PR targeting development
+            - [x] PR must have a description briefly explaining the changes
+            - [x] If it is a bug fix, there must be steps on how to reproduce the bug, the expected outcome, and the current outcome
+            - [x] If it is an additional feature, there must be steps on how to get the feature to work
+            - [x] Pictures / gifs are optional, but preferred
 
 ---
 
