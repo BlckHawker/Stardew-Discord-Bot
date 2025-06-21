@@ -23,6 +23,18 @@ const validModData = {
 
 const validDiscordChannel = { name: "test-channel" };
 
+const setupNexusWithConsoleSpies = () => {
+  jest.resetModules();
+
+    // Setup spies BEFORE importing tested modules
+  const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    // Import module AFTER spies are setup
+  const nexus = require("../apiCalls/nexus");
+  return { consoleErrorSpy, consoleLogSpy, nexus };
+}
+
 beforeAll(() => {
   Object.assign(process.env, {
     ICCC_ROLE: "ICCC_ROLE",
@@ -40,14 +52,9 @@ describe("getLatestICCCModRelease", () => {
   let discord;
 
   beforeEach(() => {
-    jest.resetModules();
-
-    // Setup spies BEFORE importing tested modules
-    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    ({ consoleErrorSpy, consoleLogSpy, nexus } = setupNexusWithConsoleSpies());
 
     // Import modules AFTER spies are setup
-    nexus = require("../apiCalls/nexus");
     discord = require("../apiCalls/discordCalls");
 
     // Clear cached data for each test
@@ -159,14 +166,7 @@ describe("getLatestModData", () => {
   let nexus;
 
   beforeEach(() => {
-    jest.resetModules();
-
-    // Setup spies BEFORE importing tested modules
-    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-
-    // Import module AFTER spies are setup
-    nexus = require("../apiCalls/nexus");
+    ({ consoleErrorSpy, consoleLogSpy, nexus } = setupNexusWithConsoleSpies()) 
   });
 
   afterEach(() => {
