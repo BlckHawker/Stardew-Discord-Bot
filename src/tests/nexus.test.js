@@ -1,3 +1,5 @@
+//todo remove redundant code
+//todo remove/optimized duplicate code
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
@@ -238,6 +240,7 @@ describe("getModData", () => {
         jest.mock("node-fetch");
 
         fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
+
         consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
         consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
