@@ -1,3 +1,5 @@
+//todo remove redundant code
+//todo remove/optimized duplicate code
 require("dotenv").config();
 const fetch = require("node-fetch");
 const utils = require("../utils")
