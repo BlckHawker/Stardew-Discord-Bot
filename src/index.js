@@ -4,6 +4,7 @@ const ICCCGithub = require("./apiCalls/ICCCGithub.js");
 const cron = require('cron');
 const youtube = require("./apiCalls/youtube.js");
 const twitch = require("./apiCalls/twitch.js")
+const nexus = require("./apiCalls/nexus.js")
 
 
 
@@ -25,6 +26,16 @@ const client = new Discord.Client({
         Partials.Channel,
         Partials.Message
     ]
+})
+
+client.on("messageCreate", (message) => {
+    if(message.author.id === process.env.CLIENT_ID) {
+        return;
+    }
+
+    nexus.getLatestICCCModRelease(client)
+
+
 })
 
 // When the bot first initializes
