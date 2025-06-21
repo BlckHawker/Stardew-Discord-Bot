@@ -12,14 +12,22 @@ jest.mock("../utils", () => ({
   convertUnixTimestampToReadableTimestamp: jest.fn(() => READABLE_TIMESTAMP),
 }));
 
+jest.mock("../apiCalls/discordCalls")
+const discord = require("../apiCalls/discordCalls")
+
 const validFullModData = {
-    files: [
-        {
-            uid: 123,
-            category_name: "MAIN"
-        }
-    ]
-}
+  files: [
+    {
+      uid: 123,
+      name: "Test Mod",
+      version: "1.0",
+      uploaded_time: "2000-01-01T00:00:00Z",
+      category_name: "MAIN",
+    },
+  ],
+};
+
+const validDiscordChannel = { name: "test-channel" }
 
 const mockFetchResponse = (data, options = {}) =>  {
   const defaultOptions = {
@@ -61,15 +69,39 @@ describe("getLatestICCCModRelease", () => {
 
     //todo (23)
     describe("if \"cachedNotifsChannel\" is null", () => {
-        //todo if there is a problem getting cachedNotifsChannel (28)
-        test("")
+        beforeEach(() => {
+            jest.restoreAllMocks();
+            ({ consoleErrorSpy, consoleLogSpy } = setupConsoleSpies());
+        })
 
-        //todo cachedNotifsChannel was gotten successfully (33)
+        afterEach(() => {
+            restoreConsoleSpies(consoleErrorSpy, consoleLogSpy)
+        });
+
+        //todo (28)
+        test("if there is a problem getting cachedNotifsChannel", async () => {
+            jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(validFullModData.files[0]);
+            discord.getDiscordChannel.mockResolvedValueOnce(null);
+            await nexus.getLatestICCCModRelease({});
+            expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting ICCC nexus notifs channel. Terminating sending message`);
+        })
+
+        //todo (33)
+        test("cachedNotifsChannel was gotten successfully", async () => {
+            jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(validFullModData.files[0]);
+            discord.getDiscordChannel.mockResolvedValueOnce({ name: "test-channel" });
+            await nexus.getLatestICCCModRelease({});
+            expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] ICCC nexus notifs channel gotten successfully`);
+        });
     })
 
     //todo (38)
-    test("if cachedNotifsChannel is not null, no need to fetch it again", () => {
-
+    test("if cachedNotifsChannel is not null, no need to fetch it again", async () => {
+        nexus._setCachedNotifsChannel(validDiscordChannel)
+        jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(validFullModData.files[0]);
+        await nexus.getLatestICCCModRelease({});
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`);
+        nexus._setCachedNotifsChannel(null)
     })
 
     //todo (42)

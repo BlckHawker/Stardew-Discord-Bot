@@ -161,8 +161,11 @@ const getModData = async (id) => {
     
 }
 
+const _setCachedNotifsChannel = (val) => cachedNotifsChannel = val;
+
 module.exports = { 
      getLatestICCCModRelease,
      getLatestModData,
-     getModData
+     getModData,
+     _setCachedNotifsChannel
 };
