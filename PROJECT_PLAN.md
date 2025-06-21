@@ -31,84 +31,141 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 
 ## 5. Technology Stack
 - **Backend**: Discord.js (Node.js)
-- **Hosting**: Local Laptop (for now)
+- **Hosting**: Local Laptop
 
 ---
 
 ## 6. Epics and User Stories
 
 ### Epic 1: Twitch Integration
-| User Story                              | Description                                                                                     |
-|-----------------------------------------|-------------------------------------------------------------------------------------------------|
-| **User Story 1.1 - Stardew Twitch Streams** | Notify in “stream-notifs” channel when Hawker streams **Stardew Valley**.                        |
-| **User Story 1.2 - Other Twitch Streams**  | Notify in “stream-notifs” channel when Hawker streams **non-Stardew** content.                   |
+| **Name**                         | **Description**                                                                | **User Story**                                                                                                                                                                                                                |
+| -------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1.1 - Stardew Twitch Streams** | Notify in “stream-notifs” channel when Hawker streams **Stardew Valley**.      | As a Discord user with the “Stardew Stream notifs” role, I want to be notified in the “stream-notifs” channel when Hawker goes live on Twitch about a stream related to Stardew so that I can join the stream live            |
+| **1.2 - Other Twitch Streams**   | Notify in “stream-notifs” channel when Hawker streams **non-Stardew** content. | As a discord user with the “Other Stream notifs” role, I want to be notified in the “stream-notifs” channel when Hawker goes live on Twitch about a stream that is not related to Stardew so that I can join the stream live. |
 
+#### 1.1 - Stardew Twitch Acceptance Criteria
+- [ ] Given Hawker starts stream on Twitch:
+  - [ ] If the stream title contains the word “Stardew” (regardless of capitalization), the bot will not detect the stream.
+  - [ ] If the stream has the tag “Stardew” or “Stardew Valley” (regardless of capitalization), the bot will not detect the stream.
+  - [ ] If the stream’s game category is set to “Stardew Valley” (regardless of capitalization), the bot will not detect the stream.
+  - [ ] The bot shall should detect streams that do not meet any of the above criteria
+  - [ ] When a stream starts, the bot pings “Other Stream notifs” in the “stream-notifs” channel
+  - [ ] The message a link to the stream and a custom message “Hawker is live: ” followed by the name of the stream in bolded letters
+  - [ ] The bot must not duplicate pings for the same stream session.
+
+#### 1.2 - Other Twitch Streams Acceptance Criteria
+- [ ] Given Hawker starts stream on Twitch
+  - [ ] If the stream title contains the word “Stardew” (regardless of capitalization), the bot will not detect the stream
+  - [ ] If the stream has the tag “Stardew” or “Stardew Valley” (regardless of capitalization), the bot will not detect the stream
+  - [ ] If the stream’s game category is set to “Stardew Valley” (regardless of capitalization), the bot will not detect the stream
+  - [ ] The bot shall detect streams that do not meet any of the above criteria
+  - [ ] When a stream starts, the bot pings “Other Stream notifs” in the “stream-notifs” channel
+  - [ ] The message includes a link to the stream and a custom message “Hawker is live: ” followed by the name of the stream in **bolded letters**
+  - [ ] The bot must not duplicate pings for the same stream session
 ---
 
 ### Epic 2: YouTube Integration
-| User Story                               | Description                                                                                     |
-|------------------------------------------|-------------------------------------------------------------------------------------------------|
-| **User Story 2.1 - Stardew YouTube Videos** | Notify in “upload-notifs” channel when Hawker uploads **Stardew-related** videos.                |
-| **User Story 2.2 - Other YouTube Videos**  | Notify in “upload-notifs” channel when Hawker uploads **non-Stardew** videos.                    |
+| **User Story**                              | **Description**                                                                   | **User Story**                                                                                                                                                                                                       |
+| ------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **2.1 - Stardew YouTube Videos** | Notify in “upload-notifs” channel when Hawker uploads **Stardew-related** videos. | As a Discord user, I want to be notified when a new video related to Stardew Valley is uploaded to Hawker’s YouTube channel, so I can watch the content as soon as possible.                                         |
+| **2.2 - Other YouTube Videos**   | Notify in “upload-notifs” channel when Hawker uploads **non-Stardew** videos.     | As a Discord user with the “Other Upload notifs” role, I want to be notified when a new video not related to Stardew Valley is uploaded to Hawker’s YouTube channel, so I can watch the content as soon as possible. |
+#### 2.1 - Stardew YouTube videos Acceptance Criteria
+- [ ] Given Hawker makes a video public on their YouTube channel
+  - [ ] If the video has the word “Stardew” (regardless of capitalization) in the title, the bot shall detect the video
+  - [ ] If the video has the word “Stardew” (regardless of capitalization) in the description, the bot shall detect the video
+  - [ ] If the video has the word “Stardew” (regardless of capitalization) as a tag, the bot shall detect the video
+  - [ ] If the video has the game “Stardew Valley” attached to it, the bot shall detect the video
+  - [ ] The bot should not detect videos that do not meet any of the above criteria
+- [ ] When the bot detects a video, the bot pings “Stardew Upload notifs” in the “upload-notifs” channel
+- [ ] The message includes a link to the video, and a custom message “Hawker has uploaded a new video: ” followed by the name of the video in **bolded letters**
+- [ ] The bot should avoid duplicate notifications for the same video
 
+#### 2.2 - Other YouTube videos Acceptance Criteria
+- [ ] Given Hawker makes a video public on their YouTube channel:
+    - [ ] If the video has the word “Stardew” (regardless of capitalization) in the title, the bot shall not detect the video
+    - [ ] If the video has the word “Stardew” (regardless of capitalization) in the description, the bot shall detect the video
+    - [ ] If the video has the word “Stardew” (regardless of capitalization) as a tag, the bot shall not detect the video
+    - [ ] If the video has the game “Stardew Valley” attached to it, the bot shall not detect the video
+    - [ ] The bot should detect videos that do not meet any of the above criteria
+    - [ ] When the bot detects a video, the bot pings “Other Upload notifs” in the “upload-notifs” channel
+    - [ ] The message includes a link to the video and a custom message “Hawker has uploaded a new video: ” followed by the name of the video in **bolded letters**
+    - [ ] The bot should avoid duplicate notifications for the same video
 ---
 
 ### Epic 3: GitHub Monitoring
-| User Story                                | Description                                                                                     |
-|-------------------------------------------|-------------------------------------------------------------------------------------------------|
-| **User Story 3.1 - ICCC Beta Test**         | Notify in “beta-test-release” channel when a **beta** build is released on ICCC’s GitHub repo.  |
+| **User Story**           | **Description**                                                                                | **User Story**                                                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **3.1 - ICCC Beta Test** | Notify in “beta-test-release” channel when a **beta** build is released on ICCC’s GitHub repo. | As an ICCC beta tester, I want to be notified when a new beta build is published on Github, so I can test the latest changes. |
 
+#### 3.1 - ICCC Beta Test Acceptance Criteria
+- [ ] The bot monitors ICCC’s Github repository release
+    - [ ] When a new release is published with “beta” (not case-sensitive) in the name, a message will be sent in ICCC’s “beta-test-release” channel
+    - [ ] The message will have the following:
+        - [ ] The role “ICCC beta tester”
+        - [ ] A link to the release including the version number and changelog
+        - [ ] A message notifying users of the release like “Hawker released a new test build for ICC.”
 ---
 
 ### Epic 4: Nexus Mod Releases
-| User Story                                | Description                                                                                     |
-|-------------------------------------------|-------------------------------------------------------------------------------------------------|
-| **User Story 4.1 - ICCC Nexus Update**     | Notify in “mod-release-notifs” when ICCC mod is updated on Nexus.                               |
-| **User Story 4.2 - New Stardew Mods Release** | Notify in “nexus-mod-release-notifs” when new Stardew mods are released on Nexus.                |
+| **User Story**                     | **Description**                                                                   | **User Story**                                                                                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **4.1 - ICCC Nexus Update**        | Notify in “mod-release-notifs” when ICCC mod is updated on Nexus.                 | As a ICCC mod user, I want to be altered when Hawker adds any new updates to the ICCC mod on Nexus, so I can download the latest version. |
+| **4.2 - New Stardew Mods Release** | Notify in “nexus-mod-release-notifs” when new Stardew mods are released on Nexus. | As a mod user, I want to know when Hawker releases a new mod to Nexus, so I can download it.                                              |
+
+#### 4.1 - ICCC Nexus Update Acceptance Criteria
+- [ ] The bot checks the ICCC page on Nexus regularly for version updates
+    - [ ] When a new mod version of ICCC is released, the bot sends a message to ICCC’s “mod-release-notifs” channel
+    - [ ] The message will include:
+        - [ ] The role “ICCC”
+        - [ ] A link to the mod on Nexus
+        - [ ] A message describing the release “A new version of ICCC has been released on Nexus (**version number in bold letters**).”
+
+#### 4.2 - New Stardew Mods Release* Acceptance Criteria
+- [ ] The bot checks Hawker’s profile to see if they uploaded a new mod
+    - [ ] If the mod is related to Stardew Valley, the bot will send a message in “nexus-mod-release-notifs”
+    - [ ] The message will include:
+        - [ ] The link to the mod on Nexus
+        - [ ] A custom message like “Hawker has released a new Stardew mod on Nexus”
 
 ---
 
 ### Epic 5: Staging & Feature Testing
-| User Story                                | Description                                                                                     |
-|-------------------------------------------|-------------------------------------------------------------------------------------------------|
-| **User Story 5.1 - Staging**                | Maintain a **staging environment** for safe testing.                                             |
-| **User Story 5.2 - Documentation**         | Maintain complete onboarding and contribution guidelines in the project’s README.                |
+| **User Story**          | **Description**                                                                   | **User Story**                                                                                                                                                                                             |
+| ----------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **5.1 - Staging**       | Maintain a **staging environment** for safe testing.                              | As a bot developer, I want a staging version of the bot, so I can safely test new features before deployment.                                                                                              |
+| **5.2 - Documentation** | Maintain complete onboarding and contribution guidelines in the project’s README. | As a bot maintainer, I want written documentation of the purpose of this project and how onboarding members can contribute to it, so I can have a smooth time incorporating new features into the main bot |
+
+#### 5.1 - Staging Acceptance Criteria
+- [ ] A separate server that mirrors the official one is created.
+
+- [ ] A separate instance of the bot is hosted for testing purposes and is added to the test server.
+
+- [ ] When a new feature is in development, it must have unit tests and all unit tests must pass in order to be cleared for deployment.
+
+#### 5.2 - Documentation Acceptance Criteria
+- [ ] The github repository will have the following branches:
+    - [ ] **main:** where the deployed version of the bot will be running. Only bot maintainers (currently only Hawker) have push access to this branch. No one is allowed to target this branch with a PR. All features should come off this branch.
+    - [ ] **development:** where PRs will target. This will be where code reviews will be done. Only one PR will be accepted at a time. Another PR cannot be accepted until the staging branch is up to date with this branch. Only Hawker will accept PRs to this branch.
+    - [ ] **staging:** where the test version of the bot will be running. This is the last stage of a feature until it’s pushed to main. Only Hawker will have push access to this branch. No one is allowed to target this branch with a PR.
+- [ ] The project will have a readme that will contain the following:
+    - [ ] A brief description that explains the purpose of this project
+    - [ ] A section for people who are interested in the server:
+        - [ ] A brief description of the server
+        - [ ] An invite link to the server
+        - [ ] Images of the bot working
+    - [ ] A section for people who are interested in developing this bot. This will contain the following:
+        - [ ] The current node version packages of the project
+        - [ ] Instructions on how to create a PR:
+            - [ ] Copy off the main branch
+            - [ ] Implement your changes
+            - [ ] Add unit tests (if applicable)
+            - [ ] Make a PR targeting development
+            - [ ] PR must have a description briefly explaining the changes
+            - [ ] If it is a bug fix, there must be steps on how to reproduce the bug, the expected outcome, and the current outcome
+            - [ ] If it is an additional feature, there must be steps on how to get the feature to work
+            - [ ] Pictures / gifs are optional, but preferred
 
 ---
 
-## 7. Planned Future Features (Ideas / Backlog)
-- **Role opt-out system**: Allow users to opt-out of specific notification roles.
-- **`/status` command**: Show if the bot is online and which modules are running.
-- **Dependency Notifications**: Notify when one of Hawker’s mods has a dependency update on Nexus Mods.
-- **Web Dashboard** (Long-term goal): Web interface for admins to configure bot settings and notifications.
-- **Command to view last 5 mods uploaded by Hawker on Nexus Mods.**
-
----
-
-## 8. Contribution Workflow
-### Branches:
-- **`main`** → Production. No PRs allowed. Hawker-only.
-- **`development`** → PRs target this. Where code reviews happen.
-- **`staging`** → Where the test bot runs. Updated before merging to `main`.
-
-### PR Requirements:
-1. Branch from `main`
-2. Make your changes with **unit tests**
-3. PR → target **`development`**
-4. Include:
-   - Summary of changes
-   - For bug fixes: reproduction steps, expected vs. actual behavior
-   - For features: how to use feature
-   - Screenshots/gifs (optional but preferred)
-
----
-
-## 9. Repository README Checklist
-The README must include:
-- ✅ Project description
-- ✅ Description of the Discord server (with invite link)
-- ✅ Images/screenshots of the bot working
-- ✅ Contribution guide (with Node version + dependencies)
-- ✅ PR instructions and standards
-
----
+## 7. Future Features Ideas
+- None at the moment
