@@ -143,7 +143,6 @@ const getModData = async (id) => {
                 'apikey': process.env.NEXUS_API_KEY
             }
         });
-        debugger
 
         //verify response was successful
         if(Math.floor(response.status / 100) !== 2) {

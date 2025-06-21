@@ -1,5 +1,3 @@
-const fetch = require("node-fetch");
-jest.mock("node-fetch");
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
@@ -27,26 +25,14 @@ const validModData = {
 
 const validDiscordChannel = { name: "test-channel" };
 
-const mockFetchResponse = (data, options = {}) => {
-  const defaultResponse = {
-    status: 200,
-    statusText: "OK",
-    json: async () => data,
-  };
-
-  // Merge any options you want to override (e.g. status, statusText)
-  const mockResponse = { ...defaultResponse, ...options };
-
-  // Mock fetch to resolve to this object once
-  return fetch.mockResolvedValueOnce(mockResponse);
-};
-
 beforeAll(() => {
   Object.assign(process.env, {
     ICCC_ROLE: "ICCC_ROLE",
     ICCC_NEXUS_MOD_ID: "ICCC_NEXUS_MOD_ID",
   });
+
 });
+
 
 
 const restoreConsoleSpies = (...spies) => spies.forEach(spy => spy.mockRestore());
@@ -245,29 +231,40 @@ describe("getLatestModData", () => {
 
 describe("getModData", () => {
     let nexus;
+    let fetchSpy;
+    let consoleErrorSpy;
+    let consoleLogSpy;
+
     beforeEach(() => {
-        jest.resetModules();
-        jest.clearAllMocks();
-        // Setup spies BEFORE importing tested modules
+        jest.resetModules(); // Clear module cache
+
+        // Mock node-fetch BEFORE requiring the module
+        jest.mock("node-fetch");
+
+        fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
         consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
         consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
-        // Import module AFTER spies are setup
-        nexus = require("../apiCalls/nexus");
+        nexus = require("../apiCalls/nexus"); // AFTER mocks
     });
 
     afterEach(() => {
-        restoreConsoleSpies(consoleErrorSpy, consoleLogSpy);
+        jest.resetModules(); // Clean module cache to prevent leakage
+        jest.clearAllMocks(); // Clear all mocks/spies
     });
 
     test("response does not have a status that starts with a 2", async () => {
 
-        mockFetchResponse(null, {
-        status: 400,
-        statusText: "Mock Error",
-    })
-    // mock fetch to return a response object with status 400
+        fetchSpy.mockResolvedValue({
+            ok: false,
+            status: 400,
+            statusText: "Mock Error",
+            json: jest.fn().mockResolvedValue(null),
+        });
 
+
+    // Log fetch calls to verify the mock is set up correctly
+    // mock fetch to return a response object with status 400
     const result = await nexus.getModData(process.env.ICCC_NEXUS_MOD_ID);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
