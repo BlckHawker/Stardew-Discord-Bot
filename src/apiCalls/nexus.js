@@ -53,14 +53,25 @@ const getLatestICCCModRelease = async (client) => {
             console.log(`[${utils.getTimeStamp()}] Cached ICCC mod data uid (${cachedModData.uid}) does not match current ICCC mod data's (${modData.uid}). Sending announcement in #${cachedNotifsChannel.name}`)
         }
 
-        console.log(modData)
+        //overwrite ICCC mod data
+        cachedModData = modData;
+
+        //create the message to send to the notifs channel
+        const roleId = process.env.ICCC_ROLE;
+        const messageContent = `<@&${roleId}>\nA version build of **${modData.name} (v${modData.version})** has been released at ${utils.convertIsoToDiscordTimestamp(modData.uploaded_time)}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
+
+        //todo check if the message has already been sent
+
+        //send message
+        discord.sendMessage(cachedNotifsChannel, messageContent);
 
     } catch (error) {
-        //log error
         console.error(`[${utils.getTimeStamp()}] Error latest nexus mod release of ICCC.`, error)
-
-
     }
+}
+
+const getModIdUrl = (id) => {
+    return `${baseUrl}`
 }
 
 //Gets Nexus latest meta data for a specific mod given its mod id
