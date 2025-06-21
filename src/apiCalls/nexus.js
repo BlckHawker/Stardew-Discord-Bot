@@ -39,6 +39,22 @@ const getLatestICCCModRelease = async (client) => {
             console.log(`[${utils.getTimeStamp()}] Notifis channel (#${cachedNotifsChannel.name}) already cached. Skipping fetch`);
         }
 
+        //check to see if the mod data is the same as the cached one (if applicable)
+        if(cachedModData === null) {
+            console.log(`[${utils.getTimeStamp()}] No ICCC mod data cached. Sending announcement in #${cachedNotifsChannel.name}`)
+        }
+
+        else if(modData.uid === cachedModData.uid) {
+            console.log(`[${utils.getTimeStamp()}] Cached ICCC mod data uid matches current ICCC mod data's (${cachedModData.uid}). No need to send duplicate announcement`)
+            return;
+        }
+
+        else {
+            console.log(`[${utils.getTimeStamp()}] Cached ICCC mod data uid (${cachedModData.uid}) does not match current ICCC mod data's (${modData.uid}). Sending announcement in #${cachedNotifsChannel.name}`)
+        }
+
+        console.log(modData)
+
     } catch (error) {
         //log error
         console.error(`[${utils.getTimeStamp()}] Error latest nexus mod release of ICCC.`, error)

@@ -50,7 +50,6 @@ const sendLatestStreamMessage = async (client) => {
 
     else {
         console.log(`[${utils.getTimeStamp()}] Cached stream object id (${cachedStreamObject.id}) does not match current stream object's (${streamObject.id}). Sending announcement in #${cachedNotifsChannel.name}`)
-
     }
 
     //overwrite cached stream object
