@@ -2,7 +2,6 @@ require("dotenv").config();
 const fetch = require("node-fetch");
 const utils = require("../utils")
 const discord = require("../apiCalls/discordCalls.js")
-const baseUrl = "https://api.nexusmods.com"
 
 let cachedNotifsChannel = null;
 let cachedModData = null;
@@ -11,7 +10,7 @@ const getLatestICCCModRelease = async (client) => {
     const id = process.env.ICCC_NEXUS_MOD_ID
     try {
         //get ICCC Nexus mod data
-        console.log(`[${utils.getTimeStamp()}] Getting latest nexus mod release of ICCC mod (id: ${id})...`)
+        console.log(`[${utils.getTimeStamp()}] Getting latest nexus mod release of ICCC mod...`)
         const modData = await getLatestModData(id)
 
         //if there is an issue getting mod data, don't send message
@@ -60,7 +59,15 @@ const getLatestICCCModRelease = async (client) => {
         const roleId = process.env.ICCC_ROLE;
         const messageContent = `<@&${roleId}>\nA version build of **${modData.name} (v${modData.version})** has been released at ${utils.convertIsoToDiscordTimestamp(modData.uploaded_time)}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
 
-        //todo check if the message has already been sent
+        //check if the message has already been sent
+        const oldNotifMessages = await discord.getDiscordMessages(cachedNotifsChannel);
+        
+        const duplicateMessage = oldNotifMessages.find(m => m.content === messageContent);
+
+        if(duplicateMessage !== undefined) {
+            console.log(`[${utils.getTimeStamp()}] Mod (uid ${modData.uid}) has already been announced in #${cachedNotifsChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicateMessage.createdTimestamp)}. Terminating sending mod notification`)
+            return;
+        }
 
         //send message
         discord.sendMessage(cachedNotifsChannel, messageContent);
@@ -68,10 +75,6 @@ const getLatestICCCModRelease = async (client) => {
     } catch (error) {
         console.error(`[${utils.getTimeStamp()}] Error latest nexus mod release of ICCC.`, error)
     }
-}
-
-const getModIdUrl = (id) => {
-    return `${baseUrl}`
 }
 
 //Gets Nexus latest meta data for a specific mod given its mod id
@@ -134,7 +137,7 @@ const getModData = async (id) => {
     try {
         console.log(`[${utils.getTimeStamp()}] Getting Stardew nexus mod with id ${id}...`)
         
-        let response = await fetch(`${baseUrl}/v1/games/stardewvalley/mods/${id}/files.json`, {
+        let response = await fetch(`https://api.nexusmods.com/v1/games/stardewvalley/mods/${id}/files.json`, {
             headers: {
                 'accept': 'application/json',
                 'apikey': process.env.NEXUS_API_KEY

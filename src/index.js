@@ -28,22 +28,11 @@ const client = new Discord.Client({
     ]
 })
 
-client.on("messageCreate", (message) => {
-    if(message.author.id === process.env.CLIENT_ID) {
-        return;
-    }
-
-    nexus.getLatestICCCModRelease(client)
-
-
-})
-
 // When the bot first initializes
 client.on("ready", (c) => {
     console.log(`${c.user.tag} is online`);
 
-
-    // every hour, check if there is a new ICC beta release
+    // every hour, check if there is a new ICC beta release on github
     const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
         ICCCGithub.getLatestICCCBetaRelease(client);
     });
@@ -58,9 +47,15 @@ client.on("ready", (c) => {
         twitch.sendLatestStreamMessage(client);
     });
 
+    //every hour, heck if there is a new ICC release on nexus
+    const ICCCReleaseJob = new cron.CronJob('0 */1 * * *', () => {
+        nexus.getLatestICCCModRelease(client);
+    });
+
     ICCCBetaTestReleaseJob.start();
     youtubeRelease.start();
     twitchJob.start();
+    ICCCReleaseJob.start();
 });
 
 client.login(process.env.DISCORD_TOKEN);
