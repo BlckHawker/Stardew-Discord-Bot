@@ -90,39 +90,37 @@ const getLatestModData = async (id) => {
         }
 
         //Otherwise extract the data so only the latest files are sent
-        else {
-            const errorMessage = `There was a problem reading mod data with id ${id}.`;
+        const errorMessage = `There was a problem reading mod data with id ${id}.`;
 
-            //verify that there is a property called "files"
-            if(!modData.files) {
-                console.error(`[${utils.getTimeStamp()}] ${errorMessage} object did not have required "files" property.`);
-                return null;
-            }
-
-            //verify that each object within "files" has a "category_name" property
-            if(modData.files.length === 0 || modData.files.some(f => !f.category_name)) {
-                console.error(`[${utils.getTimeStamp()}] ${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`);
-                return null;
-            }
-
-            //verify each "category_name" property is either "OLD_VERSION" or "MAIN"
-            if(modData.files.some(f => f.category_name !== "OLD_VERSION" && f.category_name !== "MAIN")) {
-                const allCategoryNames = modData.files.map(f => `"${f.category_name}"`);
-                console.error(`[${utils.getTimeStamp()}] ${errorMessage} At least one of the "category_name" properties is not "OLD_VERSION" nor "MAIN". Found ${allCategoryNames.join(", ")}.`);
-                return null;
-            }
-
-            //verify there is exactly one "category_name" property with the value "MAIN"
-            const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
-
-            if(mainFiles.length !== 1) {
-                console.error(`[${utils.getTimeStamp()}] ${errorMessage}. There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`)
-                return null;
-            }
-
-            console.log(`[${utils.getTimeStamp()}] Validated mod data...`)
-            return mainFiles[0];
+        //verify that there is a property called "files"
+        if(!modData.files) {
+            console.error(`[${utils.getTimeStamp()}] ${errorMessage} object did not have required "files" property.`);
+            return null;
         }
+
+        //verify that each object within "files" has a "category_name" property
+        if(modData.files.length === 0 || modData.files.some(f => !f.category_name)) {
+            console.error(`[${utils.getTimeStamp()}] ${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`);
+            return null;
+        }
+
+        //verify each "category_name" property is either "OLD_VERSION" or "MAIN"
+        if(modData.files.some(f => f.category_name !== "OLD_VERSION" && f.category_name !== "MAIN")) {
+            const allCategoryNames = modData.files.map(f => `"${f.category_name}"`);
+            console.error(`[${utils.getTimeStamp()}] ${errorMessage} At least one of the "category_name" properties is not "OLD_VERSION" nor "MAIN". Found ${allCategoryNames.join(", ")}.`);
+            return null;
+        }
+
+        //verify there is exactly one "category_name" property with the value "MAIN"
+        const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
+
+        if(mainFiles.length !== 1) {
+            console.error(`[${utils.getTimeStamp()}] ${errorMessage}. There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`)
+            return null;
+        }
+
+        console.log(`[${utils.getTimeStamp()}] Validated mod data...`)
+        return mainFiles[0];
     }
 
     catch (error) {
