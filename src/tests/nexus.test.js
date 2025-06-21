@@ -1,10 +1,9 @@
+const fetch = require("node-fetch");
+jest.mock("node-fetch");
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
 
-const fetch = require("node-fetch");
-jest.mock("node-fetch");
-const { Response } = jest.requireActual("node-fetch");
 
 // Utils mocked globally (does not depend on nexus)
 jest.mock("../utils", () => ({
@@ -16,6 +15,8 @@ jest.mock("../utils", () => ({
 // discordCalls mocked globally so we can mock its functions later
 jest.mock("../apiCalls/discordCalls");
 
+//todo rewrite test descriptions so they're more insightful
+
 const validModData = {
   uid: 123,
   name: "Test Mod",
@@ -25,6 +26,20 @@ const validModData = {
 };
 
 const validDiscordChannel = { name: "test-channel" };
+
+const mockFetchResponse = (data, options = {}) => {
+  const defaultResponse = {
+    status: 200,
+    statusText: "OK",
+    json: async () => data,
+  };
+
+  // Merge any options you want to override (e.g. status, statusText)
+  const mockResponse = { ...defaultResponse, ...options };
+
+  // Mock fetch to resolve to this object once
+  return fetch.mockResolvedValueOnce(mockResponse);
+};
 
 beforeAll(() => {
   Object.assign(process.env, {
@@ -229,10 +244,38 @@ describe("getLatestModData", () => {
 });
 
 describe("getModData", () => {
-    //todo 145
-    test("response does not have a status that starts with a 2", () => {
+    let nexus;
+    beforeEach(() => {
+        jest.resetModules();
+        jest.clearAllMocks();
+        // Setup spies BEFORE importing tested modules
+        consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+        consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
+        // Import module AFTER spies are setup
+        nexus = require("../apiCalls/nexus");
+    });
+
+    afterEach(() => {
+        restoreConsoleSpies(consoleErrorSpy, consoleLogSpy);
+    });
+
+    test("response does not have a status that starts with a 2", async () => {
+
+        mockFetchResponse(null, {
+        status: 400,
+        statusText: "Mock Error",
     })
+    // mock fetch to return a response object with status 400
+
+    const result = await nexus.getModData(process.env.ICCC_NEXUS_MOD_ID);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `[${MOCK_TIMESTAMP}] Error getting Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}. Status 400 Mock Error`
+    );
+    expect(result).toBeNull();
+    });
+
 
     //todo 158
     test("Errors are handled gracefully", () => {
