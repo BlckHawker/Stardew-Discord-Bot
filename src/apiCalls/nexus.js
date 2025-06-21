@@ -162,5 +162,7 @@ const getModData = async (id) => {
 }
 
 module.exports = { 
-     getLatestICCCModRelease
+     getLatestICCCModRelease,
+     getLatestModData,
+     getModData
 };

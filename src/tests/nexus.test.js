@@ -1,10 +1,68 @@
+const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
+const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
+const READABLE_TIMESTAMP = "READABLE"
+
+const fetch = require("node-fetch");
+jest.mock("node-fetch");
+const { Response } = jest.requireActual("node-fetch");
+const nexus = require("../apiCalls/nexus")
+jest.mock("../utils", () => ({
+  getTimeStamp: jest.fn(() => MOCK_TIMESTAMP),
+  convertIsoToDiscordTimestamp: jest.fn(() => DISCORD_TIMESTAMP),
+  convertUnixTimestampToReadableTimestamp: jest.fn(() => READABLE_TIMESTAMP),
+}));
+
+const validFullModData = {
+    files: [
+        {
+            uid: 123,
+            category_name: "MAIN"
+        }
+    ]
+}
+
+const mockFetchResponse = (data, options = {}) =>  {
+  const defaultOptions = {
+    status: 200,
+    ...options,
+  };
+  return fetch.mockResolvedValueOnce(new Response(JSON.stringify(data), defaultOptions));
+}
+
+const setupConsoleSpies = () => {
+  const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  return { consoleErrorSpy, consoleLogSpy };
+};
+
+const restoreConsoleSpies = (...spies) => spies.forEach(spy => spy.mockRestore());
+
+
+//todo change the describe / test descriptions to be more insightful
 describe("getLatestICCCModRelease", () => {
 
-    //todo if there is a problem getting modData (17)
+    let consoleErrorSpy;
+    let consoleLogSpy;
+
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        ({ consoleErrorSpy, consoleLogSpy } = setupConsoleSpies());
+    })
+
+    afterEach(() => {
+        restoreConsoleSpies(consoleErrorSpy, consoleLogSpy)
+    });
+
+    test("if there is a problem getting modData", async () => {
+        jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(null);
+        await nexus.getLatestICCCModRelease();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable to get ICCC Nexus mod data. Not sending message...`);
+    })
 
     //todo (23)
     describe("if \"cachedNotifsChannel\" is null", () => {
         //todo if there is a problem getting cachedNotifsChannel (28)
+        test("")
 
         //todo cachedNotifsChannel was gotten successfully (33)
     })
@@ -85,6 +143,6 @@ describe("getModData", () => {
 
     //todo 158
     test("Errors are handled gracefully", () => {
-        
+
     })
 })
