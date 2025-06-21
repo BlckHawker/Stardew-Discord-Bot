@@ -11,7 +11,8 @@ const getLatestICCCModRelease = async (client) => {
     try {
         //get ICCC Nexus mod data
         console.log(`[${utils.getTimeStamp()}] Getting latest nexus mod release of ICCC mod...`)
-        const modData = await getLatestModData(id)
+        debugger
+        const modData = await module.exports.getLatestModData(id)
 
         //if there is an issue getting mod data, don't send message
         if(modData === null) {
@@ -55,14 +56,16 @@ const getLatestICCCModRelease = async (client) => {
         //overwrite ICCC mod data
         cachedModData = modData;
 
+
         //create the message to send to the notifs channel
         const roleId = process.env.ICCC_ROLE;
         const messageContent = `<@&${roleId}>\nA version build of **${modData.name} (v${modData.version})** has been released at ${utils.convertIsoToDiscordTimestamp(modData.uploaded_time)}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
 
         //check if the message has already been sent
-        const oldNotifMessages = await discord.getDiscordMessages(cachedNotifsChannel);
+        const oldNotifsMessages = await discord.getDiscordMessages(cachedNotifsChannel);
+        debugger
         
-        const duplicateMessage = oldNotifMessages.find(m => m.content === messageContent);
+        const duplicateMessage = oldNotifsMessages.find(m => m.content === messageContent);
 
         if(duplicateMessage !== undefined) {
             console.log(`[${utils.getTimeStamp()}] Mod (uid ${modData.uid}) has already been announced in #${cachedNotifsChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicateMessage.createdTimestamp)}. Terminating sending mod notification`)
@@ -81,7 +84,7 @@ const getLatestICCCModRelease = async (client) => {
 const getLatestModData = async (id) => {
     try {
         console.log(`[${utils.getTimeStamp()}] Getting latest build Stardew nexus mod with id ${id}...`)
-        const modData = await getModData(id);
+        const modData = await module.exports.getModData(id);
 
         //if modData is null, return null
         if(modData === null) {
@@ -162,10 +165,12 @@ const getModData = async (id) => {
 }
 
 const _setCachedNotifsChannel = (val) => cachedNotifsChannel = val;
+const _setCachedModData = (val) => cachedModData = val;
 
 module.exports = { 
      getLatestICCCModRelease,
      getLatestModData,
      getModData,
-     _setCachedNotifsChannel
+     _setCachedNotifsChannel,
+     _setCachedModData
 };

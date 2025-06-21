@@ -1,3 +1,5 @@
+
+
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
@@ -15,27 +17,29 @@ jest.mock("../utils", () => ({
 jest.mock("../apiCalls/discordCalls")
 const discord = require("../apiCalls/discordCalls")
 
-const validFullModData = {
-  files: [
-    {
+const validModData = {
       uid: 123,
       name: "Test Mod",
       version: "1.0",
       uploaded_time: "2000-01-01T00:00:00Z",
       category_name: "MAIN",
-    },
+    }
+
+const validFullModData = {
+  files: [
+    validModData
   ],
 };
 
 const validDiscordChannel = { name: "test-channel" }
 
-const mockFetchResponse = (data, options = {}) =>  {
-  const defaultOptions = {
-    status: 200,
-    ...options,
-  };
-  return fetch.mockResolvedValueOnce(new Response(JSON.stringify(data), defaultOptions));
-}
+beforeAll(() => {
+  Object.assign(process.env, {
+    ICCC_ROLE: "ICCC_ROLE",
+    ICCC_NEXUS_MOD_ID: "ICCC_NEXUS_MOD_ID"
+    
+  });
+});
 
 const setupConsoleSpies = () => {
   const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
@@ -59,79 +63,106 @@ describe("getLatestICCCModRelease", () => {
 
     afterEach(() => {
         restoreConsoleSpies(consoleErrorSpy, consoleLogSpy)
+        nexus._setCachedNotifsChannel(null);
+        nexus._setCachedModData(null);
     });
 
     test("if there is a problem getting modData", async () => {
-        jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(null);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
         await nexus.getLatestICCCModRelease();
         expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable to get ICCC Nexus mod data. Not sending message...`);
     })
 
-    //todo (23)
+
     describe("if \"cachedNotifsChannel\" is null", () => {
         beforeEach(() => {
             jest.restoreAllMocks();
             ({ consoleErrorSpy, consoleLogSpy } = setupConsoleSpies());
+            nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
         })
 
         afterEach(() => {
             restoreConsoleSpies(consoleErrorSpy, consoleLogSpy)
         });
 
-        //todo (28)
         test("if there is a problem getting cachedNotifsChannel", async () => {
-            jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(validFullModData.files[0]);
             discord.getDiscordChannel.mockResolvedValueOnce(null);
             await nexus.getLatestICCCModRelease({});
             expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting ICCC nexus notifs channel. Terminating sending message`);
         })
 
-        //todo (33)
         test("cachedNotifsChannel was gotten successfully", async () => {
-            jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(validFullModData.files[0]);
             discord.getDiscordChannel.mockResolvedValueOnce({ name: "test-channel" });
             await nexus.getLatestICCCModRelease({});
             expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] ICCC nexus notifs channel gotten successfully`);
         });
     })
 
-    //todo (38)
     test("if cachedNotifsChannel is not null, no need to fetch it again", async () => {
         nexus._setCachedNotifsChannel(validDiscordChannel)
-        jest.spyOn(nexus, "getLatestModData").mockResolvedValueOnce(validFullModData.files[0]);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
         await nexus.getLatestICCCModRelease({});
         expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`);
-        nexus._setCachedNotifsChannel(null)
     })
 
-    //todo (42)
-    test("cachedModData is null", () => {
-
+    test("cachedModData is null", async () => {
+        nexus._setCachedNotifsChannel(validDiscordChannel)
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        await nexus.getLatestICCCModRelease({});
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`);
     })
 
-    //todo (46)
-    test("cachedModData is cached with duplicate data", () => {
-
+    test("cachedModData is cached with duplicate data",async  () => {
+        nexus._setCachedNotifsChannel(validDiscordChannel)
+        nexus._setCachedModData(validModData)
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        await nexus.getLatestICCCModRelease({});
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`);
     })
 
-    //todo (52)
-    test("cachedModData is chached with different data", () => {
-
+    test("cachedModData is cached with different data", async () => {
+        const newModData = {
+            uid: 321,
+            name: "Other Test Mod",
+            version: "2.0",
+            uploaded_time: "3000-01-01T00:00:00Z",
+            category_name: "MAIN",
+            };
+            
+        nexus._setCachedNotifsChannel(validDiscordChannel)
+        nexus._setCachedModData(validModData)
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(newModData);
+        await nexus.getLatestICCCModRelease({});
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid (${validModData.uid}) does not match current ICCC mod data's (${newModData.uid}). Sending announcement in #${validDiscordChannel.name}`);
     })
 
-    //todo (68)
-    test("if duplicate message is found, then don't send discord message", () => {
-
+    test("if duplicate message is found, then don't send discord message", async () => {
+        const expectedMessageContent = `<@&${process.env.ICCC_ROLE}>\nA version build of **${validModData.name} (v${validModData.version})** has been released at ${DISCORD_TIMESTAMP}!\nhttps://www.nexusmods.com/stardewvalley/mods/${process.env.ICCC_NEXUS_MOD_ID}`
+        consoleLogSpy(expectedMessageContent)
+        nexus._setCachedNotifsChannel(validDiscordChannel)
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        discord.getDiscordMessages.mockResolvedValueOnce([{content: expectedMessageContent}])
+        await nexus.getLatestICCCModRelease({});
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${READABLE_TIMESTAMP}. Terminating sending mod notification`)
     })
 
-    //todo (73)
-    test("if duplicate message cannot be found, send discord message", () => {
-
+    test("if duplicate message cannot be found, send discord message", async () => {
+        discord.sendMessage = jest.fn(() => {});
+        discord.getDiscordMessages = jest.fn(() => [])
+        nexus._setCachedNotifsChannel(validDiscordChannel)
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        await nexus.getLatestICCCModRelease({});
+        expect(discord.sendMessage).toHaveBeenCalledTimes(1);
     })
 
-    //todo (76)
-    test("Errors should be handled gracefully", () => {
-
+    test("Errors should be handled gracefully", async () => {
+        let error = new Error("Test error")
+        nexus.getLatestModData = jest.fn().mockRejectedValueOnce(error);
+        await nexus.getLatestICCCModRelease({})
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.stringContaining("Error latest nexus mod release of ICCC"),
+            error
+        );
     })
 })
 
