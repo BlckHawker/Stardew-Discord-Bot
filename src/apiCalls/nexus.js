@@ -63,7 +63,6 @@ const getLatestICCCModRelease = async (client) => {
 
         //check if the message has already been sent
         const oldNotifsMessages = await discord.getDiscordMessages(cachedNotifsChannel);
-        debugger
         
         const duplicateMessage = oldNotifsMessages.find(m => m.content === messageContent);
 
@@ -118,7 +117,7 @@ const getLatestModData = async (id) => {
         const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
 
         if(mainFiles.length !== 1) {
-            console.error(`[${utils.getTimeStamp()}] ${errorMessage}. There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`)
+            console.error(`[${utils.getTimeStamp()}] ${errorMessage} There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`)
             return null;
         }
 
