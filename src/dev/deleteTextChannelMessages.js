@@ -2,7 +2,7 @@ require("dotenv").config();
 const { ChannelType } = require('discord.js');
 const utils = require("../utils.js");
 
-const channelId = process.env.UPLOAD_NOTIFS_CHANNEL_ID; // the id of the discord channel where all messages will be deleted 
+const channelId = process.env.NEXUS_MOD_RELEASE_CHANNEL_ID; // the id of the discord channel where all messages will be deleted 
 (async () => {
     console.log("Delete script ran");
   

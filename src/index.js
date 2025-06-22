@@ -28,6 +28,14 @@ const client = new Discord.Client({
     ]
 })
 
+client.on("messageCreate", (message) => {
+    if(message.author.id === process.env.CLIENT_ID)
+        return;
+
+    nexus.getAllModsFromSpecificUser(client)
+
+})
+
 // When the bot first initializes
 client.on("ready", (c) => {
     console.log(`${c.user.tag} is online`);
@@ -52,10 +60,16 @@ client.on("ready", (c) => {
         nexus.getLatestICCCModRelease(client);
     });
 
+    // every hour, check if there is a new mod released on Hawker's nexus account
+    const nexusReleaseJob = new cron.CronJob('0 */1 * * *', () => {
+        nexus.getAllModsFromSpecificUser(client);
+    });
+
     ICCCBetaTestReleaseJob.start();
     youtubeRelease.start();
     twitchJob.start();
     ICCCReleaseJob.start();
+    nexusReleaseJob.start();
 });
 
 client.login(process.env.DISCORD_TOKEN);

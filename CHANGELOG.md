@@ -1,5 +1,4 @@
 # Changelog
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
@@ -8,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 ### Added
 - **Changelog.md**
-- **Stardew Instanct Community Center Check**
-  - Sends notification for updates of the Instant Community Center mod on Nexus
+- **Nexus mods Checks**
+  - Sends notification for updates of the Instant Community Center mod
+  - Sends notification for when new stardew mods release from Hawker's page
 ---
 ## [2.0.0] - 2025-06-21
 ### Added
@@ -30,4 +30,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Staging environment set up with isolated deployment
   - README documentation for contribution guidelines
 ---
-
