@@ -219,7 +219,7 @@ const getAllModsFromSpecificUser = async (client) => {
             return
         }
 
-        console.log(`[${utils.getTimeStamp()}] Successfully got mod ids ${modIds.join(",")}`);
+        console.log(`[${utils.getTimeStamp()}] Successfully got mod ids ${modIds.join(", ")}`);
 
         //get rid of any mods that we're already checking
         const filteredModIds = modIds.filter(id => !redundantModIds.includes(Number(id)));
@@ -317,8 +317,21 @@ const getAllTrackedMods = async () => {
 
         //extract the mod ids
         const data = await response.json();
-        const ids = data.map(d => d.mod_id);
         console.log(`[${utils.getTimeStamp()}] Successfully got all of the tracked mods ids.`)
+        
+        //filter that are not related to stardew valley
+        const filteredData = data.filter(d => d.domain_name === 'stardewvalley')
+
+        console.log(`[${utils.getTimeStamp()}] Filtering tracked mods that are not related to stardew valley...`)
+
+        //if there no stardew valley mods, return null
+        if(filteredData.length === 0) {
+            console.error(`[${utils.getTimeStamp()}] Filtered tracked mods list is empty. Unable to get ids.`)
+            return null;
+        }
+
+        console.log(`[${utils.getTimeStamp()}] Successfully got all stardew valley tracked mods ids.`)
+        const ids = filteredData.map(d => d.mod_id);
         return ids;
     } 
 
