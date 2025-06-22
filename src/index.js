@@ -32,8 +32,7 @@ client.on("messageCreate", (message) => {
     if(message.author.id === process.env.CLIENT_ID)
         return;
 
-    nexus.getAllModsFromSpecificUser(client)
-
+    nexus.getAllModsFromSpecificUser(client);
 })
 
 // When the bot first initializes

@@ -12,6 +12,29 @@ let cachedICCCNotifsChannel = null;
 let cachedModData = null;
 let redundantModIds = [Number(process.env.ICCC_NEXUS_MOD_ID)];
 
+const getOrFetchChannel = async (client, cachedChannelObject, channelId, channelName) => {
+    
+    //if the channel is already cached, return it
+    if (cachedChannelObject !== null) {
+        console.log(`[${utils.getTimeStamp()}] Notifis channel (#${cachedChannelObject.name}) already cached. Skipping fetch`);
+        return cachedChannelObject;
+    }
+
+    //get the desired discord channel
+    console.log(`[${utils.getTimeStamp()}] Getting ${channelName} channel...`)
+    const channel = await discord.getDiscordChannel(client, channelId);
+    
+    //if there's a problem with getting the notifs channel, stop this method
+    if (channel === null) {
+        console.error(`[${utils.getTimeStamp()}] Error getting channel with ID ${channelId}`);
+        return null;
+    }
+
+    //return the captured channel
+    console.log(`[${utils.getTimeStamp()}] Fetched and cached channel ${channel.name}`);
+    return channel;
+};
+
 const getLatestICCCModRelease = async (client) => {
     const id = process.env.ICCC_NEXUS_MOD_ID
     try {
@@ -25,23 +48,14 @@ const getLatestICCCModRelease = async (client) => {
             return
         }
 
+        const channelName = "ICCC nexus release notifs";
+
         //get the channel object to send the notification in
+        cachedICCCNotifsChannel = await module.exports.getOrFetchChannel(client, cachedICCCNotifsChannel, process.env.ICCC_NEXUS_MOD_NOTIFS_ID, channelName);
+
         if(cachedICCCNotifsChannel === null) {
-            console.log(`[${utils.getTimeStamp()}] Getting ICCC nexus release notifs channel...`)
-            cachedICCCNotifsChannel = await discord.getDiscordChannel(client, process.env.ICCC_NEXUS_MOD_NOTIFS_ID)
-
-            //if there's a problem with getting the notifs channel, stop this method
-            if(cachedICCCNotifsChannel === null) {
-                console.error(`[${utils.getTimeStamp()}] There was an error getting ICCC nexus notifs channel. Terminating sending message`)
-                return;
-            }
-
-            console.log(`[${utils.getTimeStamp()}] ICCC nexus notifs channel gotten successfully`)
-        }
-
-        //skip fetching channel if already cached
-        else {
-            console.log(`[${utils.getTimeStamp()}] Notifis channel (#${cachedICCCNotifsChannel.name}) already cached. Skipping fetch`);
+            console.error(`[${utils.getTimeStamp()}] There was an error getting ${channelName} channel. Terminating sending message`)
+            return;
         }
 
         //check to see if the mod data is the same as the cached one (if applicable)
@@ -242,23 +256,14 @@ const getAllModsFromSpecificUser = async (client) => {
                 continue;
             }
 
+            const channelName = "nexus mod release notifs"
             //get the channel object to send the notification in
+            cachedNexusModReleaseChannel = await module.exports.getOrFetchChannel(client, cachedNexusModReleaseChannel, process.env.NEXUS_MOD_RELEASE_CHANNEL_ID, channelName);
+
+            //if there's a problem with getting the notifs channel, stop this method
             if(cachedNexusModReleaseChannel === null) {
-                console.log(`[${utils.getTimeStamp()}] Getting nexus mod release notifs channel...`)
-                cachedNexusModReleaseChannel = await discord.getDiscordChannel(client, process.env.NEXUS_MOD_RELEASE_CHANNEL_ID)
-                
-                //if there's a problem with getting the notifs channel, stop this method
-                if(cachedNexusModReleaseChannel === null) {
-                    console.error(`[${utils.getTimeStamp()}] There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`)
-                    continue;
-                }
-
-                console.log(`[${utils.getTimeStamp()}] nexus mod release notifs channel gotten successfully`)
-            }
-
-            //skip fetching channel if already cached
-            else {
-                console.log(`[${utils.getTimeStamp()}] Notifis channel (#${cachedNexusModReleaseChannel.name}) already cached. Skipping fetch`);
+                console.error(`[${utils.getTimeStamp()}] There was an error getting ${channelName} channel. Terminating sending message for mod id ${id}`)
+                continue;
             }
 
             //create the message to send to the notifs channel
@@ -344,6 +349,7 @@ const _setCachedICCCModData = (val) => cachedModData = val;
 const _setCachedNexusModReleaseChannel = (val) => cachedNexusModReleaseChannel = val;
 
 module.exports = { 
+    getOrFetchChannel,
      getAllTrackedMods,
      getLatestICCCModRelease,
      getLatestModData,

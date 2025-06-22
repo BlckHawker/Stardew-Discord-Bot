@@ -47,6 +47,52 @@ beforeAll(() => {
 
 const restoreConsoleSpies = (...spies) => spies.forEach(spy => spy.mockRestore());
 
+describe("getOrFetchChannel", () => {
+    let consoleErrorSpy;
+    let consoleLogSpy;
+    let nexus;
+    let discord;
+
+  beforeEach(() => {
+    ({ consoleErrorSpy, consoleLogSpy, nexus } = setupNexusWithConsoleSpies());
+
+    // Import modules AFTER spies are setup
+    discord = require("../apiCalls/discordCalls");
+
+    // Clear cached data for each test
+    nexus._setCachedICCCNotifsChannel(null);
+    nexus._setCachedICCCModData(null);
+  });
+
+  afterEach(() => {
+    jest.resetModules(); // Clean module cache to prevent leakage
+    jest.clearAllMocks(); // Clear all mocks/spies
+  });
+
+    test("logs that the channel was found in cache and returns it", async () => {
+      const channelId = "channelId";
+      const result = await nexus.getOrFetchChannel(null, validDiscordChannel, channelId, validDiscordChannel.name)
+      expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`);
+      expect(result).toBe(validDiscordChannel)
+    })
+
+    test("logs an error and returns null if fetched channel returns null", async () => {
+      const channelId = "channelId";
+      discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
+      const result = await nexus.getOrFetchChannel(null, null, channelId, validDiscordChannel.name)
+      expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Error getting channel with ID ${channelId}`);
+      expect(result).toBe(null)
+    })
+
+    test("fetches and returns the channel if not cached", async () => {
+      const channelId = "channelId";
+      discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(validDiscordChannel)
+      const result = await nexus.getOrFetchChannel(null, null, channelId, validDiscordChannel.name)
+      expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Fetched and cached channel ${validDiscordChannel.name}`);
+      expect(result).toBe(validDiscordChannel)
+    })
+})
+
 describe("getLatestICCCModRelease", () => {
   let consoleErrorSpy;
   let consoleLogSpy;
@@ -74,31 +120,14 @@ describe("getLatestICCCModRelease", () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable to get ICCC Nexus mod data. Not sending message...`);
   });
 
-  describe("when cachedNotifsChannel is not cached yet", () => {
-    beforeEach(() => {
-      // no resetModules here to keep spies & modules
-      nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    });
-
-    test("logs error and aborts if unable to fetch notification channel", async () => {
-      discord.getDiscordChannel.mockResolvedValueOnce(null);
-      await nexus.getLatestICCCModRelease({});
-      expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting ICCC nexus notifs channel. Terminating sending message`);
-    });
-
-    test("successfully caches the notification channel after fetching", async () => {
-      discord.getDiscordChannel.mockResolvedValueOnce({ name: "test-channel" });
-      await nexus.getLatestICCCModRelease({});
-      expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] ICCC nexus notifs channel gotten successfully`);
-    });
-  });
-
-  test("reuses cached notification channel without fetching again", async () => {
-    nexus._setCachedICCCNotifsChannel(validDiscordChannel);
+  test("logs error and aborts when discord channel retrieval fails", async () => {
+    const channelName = "ICCC nexus release notifs";
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    await nexus.getLatestICCCModRelease({});
-    expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`);
-  });
+    nexus.getOrFetchChannel = jest.fn().mockResolvedValue(null)
+    await nexus.getLatestICCCModRelease()
+    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting ${channelName} channel. Terminating sending message`);
+
+  })
 
   test("announces mod release when no previous mod data is cached", async () => {
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
@@ -133,8 +162,6 @@ describe("getLatestICCCModRelease", () => {
 
   test("skips sending Discord message if identical notification message already exists", async () => {
     const expectedMessageContent = `<@&${process.env.ICCC_ROLE}>\nA version build of **${validModData.name} (v${validModData.version})** has been released at ${DISCORD_TIMESTAMP}!\nhttps://www.nexusmods.com/stardewvalley/mods/${process.env.ICCC_NEXUS_MOD_ID}`;
-    consoleLogSpy(expectedMessageContent);  // <-- seems like a stray call? Might want to remove this
-
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     discord.getDiscordMessages.mockResolvedValueOnce([{ content: expectedMessageContent }]);
@@ -305,8 +332,6 @@ describe("getModData", () => {
   let fetchSpy;
   let consoleErrorSpy;
   let nexus;
-  let discord;
-
     beforeEach(() => {
         jest.resetModules(); // Clear module cache
 
@@ -410,20 +435,9 @@ describe("getAllModsFromSpecificUser", () => {
         const id = 1;
         nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
+        nexus.getOrFetchChannel = jest.fn().mockResolvedValueOnce(null)
         await nexus.getAllModsFromSpecificUser();
         expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`);
-    })
-
-    test("logs that the discord channel is already cached and skips fetching it again", async () => {
-        const id = 1;
-        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
-        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
-        nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
-        await nexus.getAllModsFromSpecificUser();
-        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`);
-        
     })
 
     test("logs that the mod has already been announced and skips re-announcing", async () => {
