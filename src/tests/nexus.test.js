@@ -164,16 +164,21 @@ describe("getLatestICCCModRelease", () => {
 
 describe("getLatestModData", () => {
   let consoleErrorSpy;
-  let consoleLogSpy;
   let nexus;
 
-  beforeEach(() => {
-    ({ consoleErrorSpy, consoleLogSpy, nexus } = setupNexusWithConsoleSpies()) 
-  });
+    beforeEach(() => {
+            jest.resetModules(); // Clear module cache
+            // Mock node-fetch BEFORE requiring the module
+            jest.mock("node-fetch");
+            fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
+            consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+            nexus = require("../apiCalls/nexus"); // AFTER mocks
+    });
 
-  afterEach(() => {
-    restoreConsoleSpies(consoleErrorSpy, consoleLogSpy);
-  });
+    afterEach(() => {
+        jest.resetModules(); // Clean module cache to prevent leakage
+        jest.clearAllMocks(); // Clear all mocks/spies
+    });
 
   test("returns null and logs error if mod data retrieval returns null", async () => {
     nexus.getModData = jest.fn().mockResolvedValueOnce(null);
@@ -190,31 +195,16 @@ describe("getLatestModData", () => {
     expect(result).toBeNull();
   });
 
-  test("returns null and logs error if any file object lacks 'category_name' property", async () => {
-    const modData = { files: [{}] };
-    nexus.getModData = jest.fn().mockResolvedValueOnce(modData);
+  test("returns null if mod data is considered invalid", async () => {
+    const response = { valid: false, reason: "test fail reason" };
+    nexus.getModData = jest.fn().mockResolvedValueOnce({});
+    nexus.validateModData = jest.fn().mockReturnValueOnce(response);
     const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. At least one of the object within the "files" property does not have "category_name" property.`);
+    
+    expect(consoleErrorSpy).toHaveBeenCalledWith(response.reason);
     expect(result).toBeNull();
-  });
+  })
 
-  test("returns null and logs error if any 'category_name' is not 'OLD_VERSION' or 'MAIN'", async () => {
-    const modData = { files: [{ category_name: "OLD_VERSION" }, { category_name: "not valid" }] };
-    const allCategoryNames = modData.files.map(f => `"${f.category_name}"`);
-    nexus.getModData = jest.fn().mockResolvedValueOnce(modData);
-    const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. At least one of the "category_name" properties is not "ARCHIVED", "MAIN", "OLD_VERSION", nor "OPTIONAL". Found ${allCategoryNames.join(", ")}.`);
-    expect(result).toBeNull();
-  });
-
-  test("returns null and logs error if there is not exactly one 'MAIN' category file", async () => {
-    const modData = { files: [{ category_name: "MAIN" }, { category_name: "MAIN" }] };
-    const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
-    nexus.getModData = jest.fn().mockResolvedValueOnce(modData);
-    const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`);
-    expect(result).toBeNull();
-  });
 
   test("logs and handles errors thrown during mod data validation", async () => {
     let error = new Error("Test error");
@@ -227,11 +217,95 @@ describe("getLatestModData", () => {
   });
 });
 
+describe("validateModData", () => {
+    const id = "id";
+    const errorMessage = `There was a problem reading mod data with id ${id}.`;
+    beforeEach(() => {
+        jest.resetModules(); // Clear module cache
+
+        // Mock node-fetch BEFORE requiring the module
+        jest.mock("node-fetch");
+
+        fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
+
+        nexus = require("../apiCalls/nexus"); // AFTER mocks
+    });
+
+    afterEach(() => {
+        jest.resetModules(); // Clean module cache to prevent leakage
+        jest.clearAllMocks(); // Clear all mocks/spies
+    });
+
+    test("returns invalid when modData is null", () => {
+        const modData = null;
+        const result = nexus.validateModData(modData, id);
+        expect(result.valid).toBe(false)
+        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] Error getting latest build nexus Stardew mod with id ${id}. Unable to extract data`);
+    })
+
+    test("returns invalid when modData does not contain a 'files' property", () => {
+        const modData = {};
+        const result = nexus.validateModData(modData, id);
+        expect(result.valid).toBe(false)
+        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} object did not have required "files" property.`);
+    })
+
+    test("returns invalid when 'files' array exists but is empty", () => {
+        const modData = {files: []};
+        const result = nexus.validateModData(modData, id);
+        expect(result.valid).toBe(false)
+        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`);
+    })
+
+    test("returns invalid when an object inside 'files' lacks 'category_name' property", () => {
+        const modData = {files: [{}]};
+        const result = nexus.validateModData(modData, id);
+        expect(result.valid).toBe(false)
+        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`);
+    })
+
+    test("returns invalid when 'category_name' property has an unexpected value", () => {
+        const category_name = "not valid";
+        const modData = {files: [{category_name}]};
+        const result = nexus.validateModData(modData, id);
+        expect(result.valid).toBe(false)
+        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} At least one of the "category_name" properties is not "ARCHIVED", "MAIN", "OLD_VERSION", nor "OPTIONAL". Found "${category_name}".`);
+    })
+
+    test("returns invalid when the number of 'MAIN' category files is not exactly one", () => {
+        const category_name = "OLD_VERSION";
+        const modData = {files: [{category_name}]};
+        const result = nexus.validateModData(modData, id);
+        const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
+        expect(result.valid).toBe(false)
+        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`);
+    })
+
+    test("handles unexpected error from getTimeStamp gracefully", () => {
+        const utils = require("../utils");
+        let error = new Error("Mocked timestamp error")
+        utils.getTimeStamp.mockImplementationOnce(() => {
+            throw error;
+        });
+        const result = nexus.validateModData({}, id);
+        expect(result.valid).toBe(false)
+        expect(result.reason).toBe(`[${utils.getTimeStamp()}] Error validating mod data of id ${id}: ${error}`);
+    })
+
+    test("returns valid for properly structured modData with exactly one 'MAIN' category file", () => {
+        const modData = {files: [{category_name: "MAIN"}]};
+        const result = nexus.validateModData(modData, id);
+        expect(result.valid).toBe(true)
+    })
+
+})
+
+
 describe("getModData", () => {
-    let nexus;
-    let fetchSpy;
-    let consoleErrorSpy;
-    let consoleLogSpy;
+  let fetchSpy;
+  let consoleErrorSpy;
+  let nexus;
+  let discord;
 
     beforeEach(() => {
         jest.resetModules(); // Clear module cache
@@ -242,7 +316,6 @@ describe("getModData", () => {
         fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
 
         consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-        consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
         nexus = require("../apiCalls/nexus"); // AFTER mocks
     });
@@ -284,3 +357,106 @@ describe("getModData", () => {
         expect(result).toBeNull();
     })
 })
+
+describe("getAllModsFromSpecificUser", () => {
+    let consoleErrorSpy;
+    let consoleLogSpy;
+    let nexus;
+    let discord;
+
+    beforeEach(() => {
+        jest.resetModules(); // Clear module cache
+
+        // Mock node-fetch BEFORE requiring the module
+        jest.mock("node-fetch");
+
+        fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
+
+        consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+        consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+        nexus = require("../apiCalls/nexus"); // AFTER mocks
+        discord = require("../apiCalls/discordCalls");
+
+    });
+
+    afterEach(() => {
+        jest.resetModules(); // Clean module cache to prevent leakage
+        jest.clearAllMocks(); // Clear all mocks/spies
+        nexus._setCachedNexusModReleaseChannel(null);
+    });
+
+    test("logs an error if getAllTrackedMods returns null", async () => {
+        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce(null);
+        await nexus.getAllModsFromSpecificUser();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable tracked stardew mod ids. Terminating new mod release checks.`);
+    })
+
+    test("logs an error if getAllTrackedMods returns an empty array", async () => {
+        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([]);
+        await nexus.getAllModsFromSpecificUser();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Filtered mod IDs array is empty; no new Stardew Mods were found.`);
+    })
+
+    test("logs an error if getLatestModData returns null for a tracked mod", async () => {
+        const id = 1;
+        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
+        await nexus.getAllModsFromSpecificUser();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable to get mod data of id ${id}. Not sending message.`);
+    })
+
+    test("logs an error if unable to get the discord channel for notifications", async () => { 
+        const id = 1;
+        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
+        await nexus.getAllModsFromSpecificUser();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`);
+    })
+
+    test("logs that the discord channel is already cached and skips fetching it again", async () => {
+        const id = 1;
+        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
+        nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
+        await nexus.getAllModsFromSpecificUser();
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`);
+        
+    })
+
+    test("logs that the mod has already been announced and skips re-announcing", async () => {
+        const id = 1;
+        const utils = require("../utils");
+        const content = `@here\nA Stardew mod has released on Hawker's page!\n Title: **${validModData.name}**\nRelease Date: ${utils.convertIsoToDiscordTimestamp(validModData.uploaded_time)}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
+        const duplicatedMessage = {content, createdTimestamp: 0 };
+        nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
+        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        discord.getDiscordMessages = jest.fn().mockResolvedValue([duplicatedMessage]);
+        await nexus.getAllModsFromSpecificUser()
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicatedMessage.createdTimestamp)}. Terminating sending mod notification`);
+    })
+
+    test("logs that an announcement for the mod has been made", async () => {
+        const id = 1;
+        nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
+        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        discord.getDiscordMessages = jest.fn().mockResolvedValue([]);
+        await nexus.getAllModsFromSpecificUser()
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Successfully sent announcement for mod id ${id}`);
+    })
+
+    test("logs an error if an exception is caught", async () => {
+        let error = new Error("Test error");
+        nexus.getAllTrackedMods = jest.fn().mockRejectedValueOnce(error);
+        await nexus.getAllModsFromSpecificUser()
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`[${MOCK_TIMESTAMP}] Error checking to see if there are any new Stardew mod releases`),
+          error
+        );
+    })
+})
+

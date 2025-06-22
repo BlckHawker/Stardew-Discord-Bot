@@ -88,7 +88,7 @@ const getLatestModData = async (id) => {
     try {
         console.log(`[${utils.getTimeStamp()}] Getting latest build Stardew nexus mod with id ${id}...`)
         const modData = await module.exports.getModData(id);
-
+        
         //if modData is null, return null
         if(modData === null) {
             console.error(`[${utils.getTimeStamp()}] Error getting latest build nexus Stardew mod with id ${id}. Unable to extract data`);
@@ -96,7 +96,7 @@ const getLatestModData = async (id) => {
         }
 
         //validate mod data
-        const response = validateModData(modData, id);
+        const response = module.exports.validateModData(modData, id);
 
         //if the response wasn't valid, log an error as to why
         if(!response.valid) {
@@ -147,7 +147,6 @@ const validateModData = (modData, id) => {
     const validCategories = ["ARCHIVED", "MAIN", "OLD_VERSION", "OPTIONAL"]
     if(modData.files.some(f => !validCategories.includes(f.category_name))) {
         const allCategoryNames = modData.files.map(f => `"${f.category_name}"`);
-        //todo optimize this so it uses validCategories array
         const lastIndex = validCategories.length - 1;
         response.reason = `[${utils.getTimeStamp()}] ${errorMessage} At least one of the "category_name" properties is not ${validCategories.slice(0, -1).map(c => `"${c}"`).join(", ")}, nor "${validCategories[lastIndex]}". Found ${allCategoryNames.join(", ")}.`;
         return response;
@@ -204,17 +203,16 @@ const getModData = async (id) => {
 
 //Gets all the nexus mods from a specific user
 const getAllModsFromSpecificUser = async (client) => {
-   
     try {
          console.log(`[${utils.getTimeStamp()}] Checking to see if there are any new Stardew mod releases...`)
         //get all of the mods made by a specific user
         //!Note: As the time of writing this (6/21/25), there currently is not a way to get all uploaded mods natively through Nexus's API
         //!Note: At the moment, the "get all tracked mods" call is being used. This means Hawker's (or whoever's) Nexus account need to track all of his mods
         
-        const modIds = await getAllTrackedMods();
+        const modIds = await module.exports.getAllTrackedMods();
         //abandon if there was an error getting mod ids
         if(modIds === null) {
-            console.error(`[${utils.getTimeStamp()}] Unable tracked stardew mod ids. Terminating new mod release checks...`);
+            console.error(`[${utils.getTimeStamp()}] Unable tracked stardew mod ids. Terminating new mod release checks.`);
             return
         }
 
@@ -240,7 +238,7 @@ const getAllModsFromSpecificUser = async (client) => {
             
             //if there is an issue getting mod data, don't send message
             if(modData === null) {
-                console.error(`[${utils.getTimeStamp()}] Unable to get mod data of id ${id}. Not sending message...`);
+                console.error(`[${utils.getTimeStamp()}] Unable to get mod data of id ${id}. Not sending message.`);
                 continue;
             }
 
@@ -282,6 +280,7 @@ const getAllModsFromSpecificUser = async (client) => {
             await discord.sendMessage(cachedNexusModReleaseChannel, messageContent);
 
             //after the mod has been announced add it to the redundant mods ids list
+            console.log(`[${utils.getTimeStamp()}] Successfully sent announcement for mod id ${id}`)
             console.log(`[${utils.getTimeStamp()}] Adding mod ${id} as a redundant id...`)
             redundantModIds.push(id)
 
@@ -342,12 +341,16 @@ const getAllTrackedMods = async () => {
 
 const _setCachedICCCNotifsChannel = (val) => cachedICCCNotifsChannel = val;
 const _setCachedICCCModData = (val) => cachedModData = val;
+const _setCachedNexusModReleaseChannel = (val) => cachedNexusModReleaseChannel = val;
 
 module.exports = { 
+     getAllTrackedMods,
      getLatestICCCModRelease,
      getLatestModData,
      getModData,
+     validateModData,
      getAllModsFromSpecificUser,
      _setCachedICCCNotifsChannel,
-     _setCachedICCCModData
+     _setCachedICCCModData,
+     _setCachedNexusModReleaseChannel
 };
