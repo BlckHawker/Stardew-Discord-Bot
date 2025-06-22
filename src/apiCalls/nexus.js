@@ -95,19 +95,19 @@ const getLatestModData = async (id) => {
             return null;
         }
 
-        //todo validate mod data
+        //validate mod data
         const response = validateModData(modData, id);
 
-        //todo if the response wasn't valid, log an error as to why
+        //if the response wasn't valid, log an error as to why
         if(!response.valid) {
             console.error(response.reason);
             return null;
         }
 
-        //todo Otherwise extract the data so only the latest files are sent
-        const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
+        //Otherwise extract the data so only the latest files are sent
+        const mainFile = modData.files.find(f => f.category_name === "MAIN");
 
-        return mainFiles[0];
+        return mainFile;
     }
 
     catch (error) {
@@ -123,7 +123,7 @@ const validateModData = (modData, id) => {
     try {
         console.log(`[${utils.getTimeStamp()}] Validating mod data with id ${id}...`)
 
-    //todo if modData is null, return null
+    //if modData is null, return null
     if(modData === null) {
         response.reason = `[${utils.getTimeStamp()}] Error getting latest build nexus Stardew mod with id ${id}. Unable to extract data`;
         return response;
@@ -131,28 +131,29 @@ const validateModData = (modData, id) => {
 
     const errorMessage = `There was a problem reading mod data with id ${id}.`;
 
-    //todo verify that there is a property called "files"
+    //verify that there is a property called "files"
     if(!modData.files) {
         response.reason = `[${utils.getTimeStamp()}] ${errorMessage} object did not have required "files" property.`;
         return response;
     }
 
-    //todo verify that each object within "files" has a "category_name" property
+    //verify that each object within "files" has a "category_name" property
     if(modData.files.length === 0 || modData.files.some(f => !f.category_name)) {
         response.reason = `[${utils.getTimeStamp()}] ${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`;
         return response;
     }
 
+    //verify each "category_name" property is valid 
     const validCategories = ["ARCHIVED", "MAIN", "OLD_VERSION", "OPTIONAL"]
-    //todo verify each "category_name" property is either "OLD_VERSION", "ARCHIVED" or "MAIN"
     if(modData.files.some(f => !validCategories.includes(f.category_name))) {
         const allCategoryNames = modData.files.map(f => `"${f.category_name}"`);
         //todo optimize this so it uses validCategories array
-        response.reason = `[${utils.getTimeStamp()}] ${errorMessage} At least one of the "category_name" properties is not "OLD_VERSION", "ARCHIVED", "OPTIONAL", nor "MAIN". Found ${allCategoryNames.join(", ")}.`;
+        const lastIndex = validCategories.length - 1;
+        response.reason = `[${utils.getTimeStamp()}] ${errorMessage} At least one of the "category_name" properties is not ${validCategories.slice(0, -1).map(c => `"${c}"`).join(", ")}, nor "${validCategories[lastIndex]}". Found ${allCategoryNames.join(", ")}.`;
         return response;
     }
 
-    //todo verify there is exactly one "category_name" property with the value "MAIN"
+    //verify there is exactly one "category_name" property with the value "MAIN"
     const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
     if(mainFiles.length !== 1) {
         response.reason = `[${utils.getTimeStamp()}] ${errorMessage} There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`;
@@ -163,13 +164,11 @@ const validateModData = (modData, id) => {
     return {valid: true};
     }
 
-    //todo error check
+    //error check
     catch (error) {
         response.reason = `[${utils.getTimeStamp()}] Error validating mod data of id ${id}: ${error}`;
         return response;
     }
-
-    
 }
 
 //Gets Nexus meta data for a specific mod given its mod id

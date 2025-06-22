@@ -61,7 +61,7 @@ describe("getLatestICCCModRelease", () => {
 
     // Clear cached data for each test
     nexus._setCachedICCCNotifsChannel(null);
-    nexus._setCachedModData(null);
+    nexus._setCachedICCCModData(null);
   });
 
   afterEach(() => {
@@ -109,7 +109,7 @@ describe("getLatestICCCModRelease", () => {
 
   test("does not announce when cached mod data matches latest mod data UID", async () => {
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
-    nexus._setCachedModData(validModData);
+    nexus._setCachedICCCModData(validModData);
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     await nexus.getLatestICCCModRelease({});
     expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`);
@@ -125,7 +125,7 @@ describe("getLatestICCCModRelease", () => {
     };
 
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
-    nexus._setCachedModData(validModData);
+    nexus._setCachedICCCModData(validModData);
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(newModData);
     await nexus.getLatestICCCModRelease({});
     expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid (${validModData.uid}) does not match current ICCC mod data's (${newModData.uid}). Sending announcement in #${validDiscordChannel.name}`);
@@ -203,7 +203,7 @@ describe("getLatestModData", () => {
     const allCategoryNames = modData.files.map(f => `"${f.category_name}"`);
     nexus.getModData = jest.fn().mockResolvedValueOnce(modData);
     const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. At least one of the "category_name" properties is not "OLD_VERSION" nor "MAIN". Found ${allCategoryNames.join(", ")}.`);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. At least one of the "category_name" properties is not "ARCHIVED", "MAIN", "OLD_VERSION", nor "OPTIONAL". Found ${allCategoryNames.join(", ")}.`);
     expect(result).toBeNull();
   });
 
