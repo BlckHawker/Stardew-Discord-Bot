@@ -1,5 +1,6 @@
 //todo remove redundant code
 //todo remove/optimized duplicate code
+//todo change the order of the function so the one called in index.js appear first. Make it following functions are sorted in order of how they are called. Ex: a function that is called in another function cannot not be above the function it calls
 require("dotenv").config();
 const fetch = require("node-fetch");
 const utils = require("../utils")
@@ -11,6 +12,12 @@ let cachedNexusModReleaseChannel = null;
 let cachedICCCNotifsChannel = null;
 let cachedModData = null;
 let redundantModIds = [Number(process.env.ICCC_NEXUS_MOD_ID)];
+
+const getDuplicateMessage = async (channelObject, messageContent) => {
+    //todo what if there's an error with getting the old messages?
+    const oldMessages = await discord.getDiscordMessages(channelObject);
+    return oldMessages.find(m => m.content === messageContent);
+};
 
 const getOrFetchChannel = async (client, cachedChannelObject, channelId, channelName) => {
     
@@ -80,9 +87,7 @@ const getLatestICCCModRelease = async (client) => {
         const messageContent = `<@&${roleId}>\nA version build of **${modData.name} (v${modData.version})** has been released at ${utils.convertIsoToDiscordTimestamp(modData.uploaded_time)}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
 
         //check if the message has already been sent
-        const oldNotifsMessages = await discord.getDiscordMessages(cachedICCCNotifsChannel);
-        
-        const duplicateMessage = oldNotifsMessages.find(m => m.content === messageContent);
+        const duplicateMessage = await  module.exports.getDuplicateMessage(cachedICCCNotifsChannel, messageContent);
 
         if(duplicateMessage !== undefined) {
             console.log(`[${utils.getTimeStamp()}] Mod (uid ${modData.uid}) has already been announced in #${cachedICCCNotifsChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicateMessage.createdTimestamp)}. Terminating sending mod notification`)
@@ -270,8 +275,7 @@ const getAllModsFromSpecificUser = async (client) => {
             const messageContent = `@here\nA Stardew mod has released on Hawker's page!\n Title: **${modData.name}**\nRelease Date: ${utils.convertIsoToDiscordTimestamp(modData.uploaded_time)}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
             
             //check if the message has already been sent
-            const oldNotifsMessages = await discord.getDiscordMessages(cachedNexusModReleaseChannel);
-            const duplicateMessage = oldNotifsMessages.find(m => m.content === messageContent);
+            const duplicateMessage = await module.exports.getDuplicateMessage(cachedNexusModReleaseChannel, messageContent);
 
             if(duplicateMessage !== undefined) {
                 //if duplicate message is found, add id to the redundant mods ids list
@@ -349,6 +353,7 @@ const _setCachedICCCModData = (val) => cachedModData = val;
 const _setCachedNexusModReleaseChannel = (val) => cachedNexusModReleaseChannel = val;
 
 module.exports = { 
+    getDuplicateMessage,
     getOrFetchChannel,
      getAllTrackedMods,
      getLatestICCCModRelease,

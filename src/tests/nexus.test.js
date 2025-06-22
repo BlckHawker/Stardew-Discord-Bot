@@ -132,6 +132,7 @@ describe("getLatestICCCModRelease", () => {
   test("announces mod release when no previous mod data is cached", async () => {
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+    nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
     await nexus.getLatestICCCModRelease({});
     expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`);
   });
@@ -139,6 +140,7 @@ describe("getLatestICCCModRelease", () => {
   test("does not announce when cached mod data matches latest mod data UID", async () => {
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
     nexus._setCachedICCCModData(validModData);
+    nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     await nexus.getLatestICCCModRelease({});
     expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`);
@@ -155,6 +157,7 @@ describe("getLatestICCCModRelease", () => {
 
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
     nexus._setCachedICCCModData(validModData);
+    nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(newModData);
     await nexus.getLatestICCCModRelease({});
     expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid (${validModData.uid}) does not match current ICCC mod data's (${newModData.uid}). Sending announcement in #${validDiscordChannel.name}`);
@@ -164,14 +167,14 @@ describe("getLatestICCCModRelease", () => {
     const expectedMessageContent = `<@&${process.env.ICCC_ROLE}>\nA version build of **${validModData.name} (v${validModData.version})** has been released at ${DISCORD_TIMESTAMP}!\nhttps://www.nexusmods.com/stardewvalley/mods/${process.env.ICCC_NEXUS_MOD_ID}`;
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    discord.getDiscordMessages.mockResolvedValueOnce([{ content: expectedMessageContent }]);
+    nexus.getDuplicateMessage = jest.fn().mockResolvedValueOnce({ content: expectedMessageContent });
     await nexus.getLatestICCCModRelease({});
     expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${READABLE_TIMESTAMP}. Terminating sending mod notification`);
   });
 
   test("sends Discord notification message when no duplicate message is found", async () => {
     discord.sendMessage = jest.fn(() => {});
-    discord.getDiscordMessages = jest.fn(() => []);
+    nexus.getDuplicateMessage = jest.fn().mockResolvedValueOnce(undefined);
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     await nexus.getLatestICCCModRelease({});
@@ -448,7 +451,7 @@ describe("getAllModsFromSpecificUser", () => {
         nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
         nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        discord.getDiscordMessages = jest.fn().mockResolvedValue([duplicatedMessage]);
+        nexus.getDuplicateMessage = jest.fn().mockResolvedValue(duplicatedMessage);
         await nexus.getAllModsFromSpecificUser()
         expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicatedMessage.createdTimestamp)}. Terminating sending mod notification`);
     })
@@ -458,7 +461,7 @@ describe("getAllModsFromSpecificUser", () => {
         nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
         nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        discord.getDiscordMessages = jest.fn().mockResolvedValue([]);
+        nexus.getDuplicateMessage = jest.fn().mockResolvedValue(undefined);
         await nexus.getAllModsFromSpecificUser()
         expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Successfully sent announcement for mod id ${id}`);
     })
@@ -479,7 +482,6 @@ describe("getAllTrackedMods", () => {
   let consoleErrorSpy;
   let consoleLogSpy;
   let nexus;
-  let discord;
 
   beforeEach(() => {
       jest.resetModules(); // Clear module cache
@@ -493,8 +495,6 @@ describe("getAllTrackedMods", () => {
       consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
       nexus = require("../apiCalls/nexus"); // AFTER mocks
-      discord = require("../apiCalls/discordCalls");
-
   });
 
   afterEach(() => {
