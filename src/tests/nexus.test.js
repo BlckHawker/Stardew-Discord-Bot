@@ -41,8 +41,8 @@ beforeAll(() => {
   Object.assign(process.env, {
     ICCC_ROLE: "ICCC_ROLE",
     ICCC_NEXUS_MOD_ID: "ICCC_NEXUS_MOD_ID",
+    NEXUS_API_KEY: "NEXUS_API_KEY"
   });
-
 });
 
 const restoreConsoleSpies = (...spies) => spies.forEach(spy => spy.mockRestore());
@@ -460,3 +460,69 @@ describe("getAllModsFromSpecificUser", () => {
     })
 })
 
+
+describe("getAllTrackedMods", () => {
+  let consoleErrorSpy;
+  let consoleLogSpy;
+  let nexus;
+  let discord;
+
+  beforeEach(() => {
+      jest.resetModules(); // Clear module cache
+
+      // Mock node-fetch BEFORE requiring the module
+      jest.mock("node-fetch");
+
+      fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
+
+      consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+      consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+      nexus = require("../apiCalls/nexus"); // AFTER mocks
+      discord = require("../apiCalls/discordCalls");
+
+  });
+
+  afterEach(() => {
+      jest.resetModules(); // Clean module cache to prevent leakage
+      jest.clearAllMocks(); // Clear all mocks/spies
+  });
+
+  test("logs an error and returns null if the response has a non-2xx status", async () => {
+        const response = {status: "test status", statusText: "statusText"}
+        fetchSpy.mockResolvedValue(response);
+        const result = await nexus.getAllTrackedMods();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Error getting tracked mods. Status ${response.status} ${response.statusText}`);
+        expect(result).toBe(null)
+
+  })
+  
+  test("logs an error and returns null if the filtered data array is empty", async () => {
+        const response = {status: 200, statusText: "statusText", json: async () => []}
+        fetchSpy.mockResolvedValue(response);
+        const result = await nexus.getAllTrackedMods();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Filtered tracked mods list is empty. Unable to get ids.`);
+        expect(result).toBe(null)
+  })
+
+  test("returns an array of mod IDs if tracked Stardew Valley mods are found", async () => {
+    const mod_id = 1;
+        const response = {status: 200, statusText: "statusText", json: async () => [{domain_name: "stardewvalley", mod_id: Number(mod_id)}]}
+        fetchSpy.mockResolvedValue(response);
+        const result = await nexus.getAllTrackedMods();
+        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Successfully got all stardew valley tracked mods ids.`);
+        expect(result.length).toBe(1);
+        expect.arrayContaining(mod_id)
+  })
+
+  test("logs an error and returns null if an exception is thrown during fetch", async () => {
+    let error = new Error("error test")
+    fetchSpy.mockRejectedValueOnce(error)
+    const result = await nexus.getAllTrackedMods()
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Error getting tracked mods:"),
+      error
+    );
+    expect(result).toBe(null)
+  })
+})
