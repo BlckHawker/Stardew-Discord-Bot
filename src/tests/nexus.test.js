@@ -47,7 +47,7 @@ beforeAll(() => {
 
 const restoreConsoleSpies = (...spies) => spies.forEach(spy => spy.mockRestore());
 
-describe("getOrFetchChannel", () => {
+describe("getDiscordChannel", () => {
     let consoleErrorSpy;
     let consoleLogSpy;
     let nexus;
@@ -71,7 +71,7 @@ describe("getOrFetchChannel", () => {
 
     test("logs that the channel was found in cache and returns it", async () => {
       const channelId = "channelId";
-      const result = await nexus.getOrFetchChannel(null, validDiscordChannel, channelId, validDiscordChannel.name)
+      const result = await nexus.getDiscordChannel(null, validDiscordChannel, channelId, validDiscordChannel.name)
       expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`);
       expect(result).toBe(validDiscordChannel)
     })
@@ -79,7 +79,7 @@ describe("getOrFetchChannel", () => {
     test("logs an error and returns null if fetched channel returns null", async () => {
       const channelId = "channelId";
       discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
-      const result = await nexus.getOrFetchChannel(null, null, channelId, validDiscordChannel.name)
+      const result = await nexus.getDiscordChannel(null, null, channelId, validDiscordChannel.name)
       expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Error getting channel with ID ${channelId}`);
       expect(result).toBe(null)
     })
@@ -87,7 +87,7 @@ describe("getOrFetchChannel", () => {
     test("fetches and returns the channel if not cached", async () => {
       const channelId = "channelId";
       discord.getDiscordChannel = jest.fn().mockResolvedValueOnce(validDiscordChannel)
-      const result = await nexus.getOrFetchChannel(null, null, channelId, validDiscordChannel.name)
+      const result = await nexus.getDiscordChannel(null, null, channelId, validDiscordChannel.name)
       expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Fetched and cached channel ${validDiscordChannel.name}`);
       expect(result).toBe(validDiscordChannel)
     })
@@ -123,7 +123,7 @@ describe("getLatestICCCModRelease", () => {
   test("logs error and aborts when discord channel retrieval fails", async () => {
     const channelName = "ICCC nexus release notifs";
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    nexus.getOrFetchChannel = jest.fn().mockResolvedValue(null)
+    nexus.getDiscordChannel = jest.fn().mockResolvedValue(null)
     await nexus.getLatestICCCModRelease()
     expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting ${channelName} channel. Terminating sending message`);
 
@@ -438,7 +438,7 @@ describe("getAllModsFromSpecificUser", () => {
         const id = 1;
         nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        nexus.getOrFetchChannel = jest.fn().mockResolvedValueOnce(null)
+        nexus.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
         await nexus.getAllModsFromSpecificUser();
         expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`);
     })
