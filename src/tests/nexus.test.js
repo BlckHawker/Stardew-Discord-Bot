@@ -26,7 +26,6 @@ const validModData = {
 
 const validDiscordChannel = { name: "test-channel" };
 
-
 const setupTestEnvironment = () => {
   // Clear module cache
     jest.resetModules();
@@ -45,6 +44,11 @@ const setupTestEnvironment = () => {
     return { fetchSpy, consoleLogSpy, consoleErrorSpy, nexus, discord };
 }
 
+const cleanUpTestEnvironment = () => {
+  jest.resetModules();   // Clean module cache to prevent leakage
+  jest.clearAllMocks(); // Clear all mocks/spies
+}
+
 beforeAll(() => {
   Object.assign(process.env, {
     ICCC_ROLE: "ICCC_ROLE",
@@ -52,8 +56,6 @@ beforeAll(() => {
     NEXUS_API_KEY: "NEXUS_API_KEY"
   });
 });
-
-const restoreConsoleSpies = (...spies) => spies.forEach(spy => spy.mockRestore());
 
 describe("getDiscordChannel", () => {
     let consoleErrorSpy;
@@ -69,8 +71,7 @@ describe("getDiscordChannel", () => {
   });
 
   afterEach(() => {
-    jest.resetModules(); // Clean module cache to prevent leakage
-    jest.clearAllMocks(); // Clear all mocks/spies
+    cleanUpTestEnvironment();
   });
 
     test("logs that the channel was found in cache and returns it", async () => {
@@ -112,7 +113,7 @@ describe("getLatestICCCModRelease", () => {
   });
 
   afterEach(() => {
-    restoreConsoleSpies(consoleErrorSpy, consoleLogSpy);
+    cleanUpTestEnvironment();
   });
 
   test("logs error and aborts when mod data retrieval fails", async () => {
@@ -202,8 +203,7 @@ describe("getLatestModData", () => {
     });
 
     afterEach(() => {
-        jest.resetModules(); // Clean module cache to prevent leakage
-        jest.clearAllMocks(); // Clear all mocks/spies
+      cleanUpTestEnvironment();
     });
 
   test("returns null and logs error if mod data retrieval returns null", async () => {
@@ -252,8 +252,7 @@ describe("validateModData", () => {
     });
 
     afterEach(() => {
-        jest.resetModules(); // Clean module cache to prevent leakage
-        jest.clearAllMocks(); // Clear all mocks/spies
+      cleanUpTestEnvironment();
     });
 
     test("returns invalid when modData is null", () => {
@@ -330,8 +329,7 @@ describe("getModData", () => {
     });
 
     afterEach(() => {
-        jest.resetModules(); // Clean module cache to prevent leakage
-        jest.clearAllMocks(); // Clear all mocks/spies
+        cleanUpTestEnvironment();
     });
 
     test("returns null and logs error if API response status is not successful (2xx)", async () => {
@@ -376,8 +374,7 @@ describe("getAllModsFromSpecificUser", () => {
     });
 
     afterEach(() => {
-        jest.resetModules(); // Clean module cache to prevent leakage
-        jest.clearAllMocks(); // Clear all mocks/spies
+        cleanUpTestEnvironment();
         nexus._setCachedNexusModReleaseChannel(null);
     });
 
@@ -456,8 +453,7 @@ describe("getAllTrackedMods", () => {
   });
 
   afterEach(() => {
-      jest.resetModules(); // Clean module cache to prevent leakage
-      jest.clearAllMocks(); // Clear all mocks/spies
+      cleanUpTestEnvironment();
   });
 
   test("logs an error and returns null if the response has a non-2xx status", async () => {
