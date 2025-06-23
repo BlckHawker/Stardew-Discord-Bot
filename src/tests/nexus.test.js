@@ -152,36 +152,51 @@ describe("getLatestICCCModRelease", () => {
     cleanUpTestEnvironment();
   });
 
-  test("logs error and aborts when mod data retrieval fails", async () => {
-    nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
-    await nexus.getLatestICCCModRelease();
-    expectConsole(consoleErrorSpy, "Unable to get ICCC Nexus mod data. Not sending message...")
-  });
+  test.each([
+    [
+      "logs error and aborts when mod data retrieval fails",
+    () => { nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null); },
+    "error",
+    "Unable to get ICCC Nexus mod data. Not sending message..."
+    ],
+    [
+      "logs error and aborts when discord channel retrieval fails",
+      () => {
+      nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+      nexus.getDiscordChannel = jest.fn().mockResolvedValueOnce(null);
+    },
+    "error",
+    "There was an error getting ICCC nexus release notifs channel. Terminating sending message"
+    ],
+    [
+      "announces mod release when no previous mod data is cached",
+      () => {
+      nexus._setCachedICCCNotifsChannel(validDiscordChannel);
+      nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+      nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true);
+    },
+    "log",
+    `No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`
+    ],
+    [
+      "does not announce when cached mod data matches latest mod data UID",
+      () => {
+      nexus._setCachedICCCNotifsChannel(validDiscordChannel);
+      nexus._setCachedICCCModData(validModData);
+      nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true);
+      nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+    },
+    "log",
+    `Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`
+    ]
+  ])
 
-  test("logs error and aborts when discord channel retrieval fails", async () => {
-    const channelName = "ICCC nexus release notifs";
-    nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    nexus.getDiscordChannel = jest.fn().mockResolvedValue(null)
-    await nexus.getLatestICCCModRelease()
-    expectConsole(consoleErrorSpy, `There was an error getting ${channelName} channel. Terminating sending message`)
-  })
-
-  test("announces mod release when no previous mod data is cached", async () => {
-    nexus._setCachedICCCNotifsChannel(validDiscordChannel);
-    nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
-    await nexus.getLatestICCCModRelease({}); 
-    expectConsole(consoleLogSpy, `No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`);
-  });
-
-  test("does not announce when cached mod data matches latest mod data UID", async () => {
-    nexus._setCachedICCCNotifsChannel(validDiscordChannel);
-    nexus._setCachedICCCModData(validModData);
-    nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
-    nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    await nexus.getLatestICCCModRelease({});
-    expectConsole(consoleLogSpy, `Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`);
-  });
+  ("%s", async (_, setupFn, logType, expectedMsg) => {
+  setupFn();
+  await nexus.getLatestICCCModRelease({});
+  const spy = logType === "error" ? consoleErrorSpy : consoleLogSpy;
+  expectConsole(spy, expectedMsg);
+});
 
   test("announces mod release when cached mod data UID differs from latest mod data UID", async () => {
     const newModData = getMockModData(321, "Other Test Mod");
@@ -310,7 +325,6 @@ describe("validateModData", () => {
         expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] Error validating mod data of id ${id}: ${error}`);
     })
 })
-
 
 describe("getModData", () => {
   let fetchSpy;
