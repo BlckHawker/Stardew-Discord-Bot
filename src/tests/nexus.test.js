@@ -1,8 +1,5 @@
 //todo remove redundant code
 //todo remove/optimized duplicate code
-//todo put after each in the own helper function
-//todo make error a global constant (then can get rid of it as a parameter in helper function)
-//todo refactorValidModData to be global
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
@@ -144,7 +141,6 @@ describe("getLatestICCCModRelease", () => {
   let nexus;
   let discord;
 
-
   beforeEach(() => {
      ({ consoleLogSpy, consoleErrorSpy, nexus, discord } = setupTestEnvironment());
 
@@ -225,6 +221,7 @@ describe("getLatestICCCModRelease", () => {
 describe("getLatestModData", () => {
   let consoleErrorSpy;
   let nexus;
+  const modId = process.env.ICCC_NEXUS_MOD_ID;
 
     beforeEach(() => {
         ({ consoleErrorSpy, nexus } = setupTestEnvironment());
@@ -234,31 +231,36 @@ describe("getLatestModData", () => {
       cleanUpTestEnvironment();
     });
 
-    //todo possibly refactor this into test.each
-  test("returns null and logs error if mod data retrieval returns null", async () => {
-    nexus.getModData = jest.fn().mockResolvedValueOnce(null);
-    const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expectConsole(consoleErrorSpy, `Error getting latest build nexus Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}. Unable to extract data`);
-    expect(result).toBeNull();
-  });
+  test.each([
+    [
+      "mod data retrieval returns null", 
+      null, 
+      undefined, 
+      `[${MOCK_TIMESTAMP}] Error getting latest build nexus Stardew mod with id ${modId}. Unable to extract data`
+    ],
+    [
+      "mod data is missing the 'files' property",
+      {},
+      undefined,
+      `[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${modId}. object did not have required "files" property.`
+    ],
+    [
+      "mod data is considered invalid",
+      {},
+      { valid: false, reason: "test fail reason" },
+      "test fail reason"
+    ]
 
-  test("returns null and logs error if mod data is missing the 'files' property", async () => {
-    const modData = {};
+  ])("returns null and logs error when %s", async (_, modData, validationResponse, expectedMessage) => {
     nexus.getModData = jest.fn().mockResolvedValueOnce(modData);
-    const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expectConsole(consoleErrorSpy, `There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. object did not have required "files" property.`);
+    if (validationResponse !== undefined) {
+      nexus.validateModData = jest.fn().mockReturnValueOnce(validationResponse);
+    }
+
+    const result = await nexus.getLatestModData(modId);
+    expectConsole(consoleErrorSpy, expectedMessage, false);
     expect(result).toBeNull();
   });
-
-  test("returns null if mod data is considered invalid", async () => {
-    const response = { valid: false, reason: "test fail reason" };
-    nexus.getModData = jest.fn().mockResolvedValueOnce({});
-    nexus.validateModData = jest.fn().mockReturnValueOnce(response);
-    const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expectConsole(consoleErrorSpy, response.reason, false);
-    expect(result).toBeNull();
-  })
-
 
   test("logs and handles errors thrown during mod data validation", async () => {
     nexus.getModData = jest.fn().mockRejectedValueOnce(error);
