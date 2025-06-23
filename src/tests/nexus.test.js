@@ -26,6 +26,8 @@ const getMockModData = (uid = 123, name = "Test Mod") => ({
   category_name: "MAIN",
 });
 
+  const validModData = getMockModData();
+
 const validDiscordChannel = { name: "test-channel" };
 
 const error = new Error("Test Error");
@@ -142,7 +144,6 @@ describe("getLatestICCCModRelease", () => {
   let nexus;
   let discord;
 
-  const validModData = getMockModData();
 
   beforeEach(() => {
      ({ consoleLogSpy, consoleErrorSpy, nexus, discord } = setupTestEnvironment());
@@ -347,7 +348,6 @@ describe("getAllModsFromSpecificUser", () => {
     let consoleErrorSpy;
     let consoleLogSpy;
     let nexus;
-    const validModData = getMockModData()
 
     beforeEach(() => {
         ({ consoleLogSpy, consoleErrorSpy, nexus } = setupTestEnvironment());
