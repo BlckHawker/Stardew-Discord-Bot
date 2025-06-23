@@ -49,6 +49,10 @@ const cleanUpTestEnvironment = () => {
   jest.clearAllMocks(); // Clear all mocks/spies
 }
 
+const expectConsole = (console, message, includeTimestamp = true) => {
+  expect(console).toHaveBeenCalledWith(`${includeTimestamp ? `[${MOCK_TIMESTAMP}] ` : ""}${message}`);
+}
+
 beforeAll(() => {
   Object.assign(process.env, {
     ICCC_ROLE: "ICCC_ROLE",
@@ -142,7 +146,7 @@ describe("getLatestICCCModRelease", () => {
   test("logs error and aborts when mod data retrieval fails", async () => {
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
     await nexus.getLatestICCCModRelease();
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable to get ICCC Nexus mod data. Not sending message...`);
+    expectConsole(consoleErrorSpy, "Unable to get ICCC Nexus mod data. Not sending message...")
   });
 
   test("logs error and aborts when discord channel retrieval fails", async () => {
@@ -150,16 +154,15 @@ describe("getLatestICCCModRelease", () => {
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     nexus.getDiscordChannel = jest.fn().mockResolvedValue(null)
     await nexus.getLatestICCCModRelease()
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting ${channelName} channel. Terminating sending message`);
-
+    expectConsole(consoleErrorSpy, `There was an error getting ${channelName} channel. Terminating sending message`)
   })
 
   test("announces mod release when no previous mod data is cached", async () => {
     nexus._setCachedICCCNotifsChannel(validDiscordChannel);
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
-    await nexus.getLatestICCCModRelease({});
-    expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`);
+    await nexus.getLatestICCCModRelease({}); 
+    expectConsole(consoleLogSpy, `No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`);
   });
 
   test("does not announce when cached mod data matches latest mod data UID", async () => {
@@ -168,7 +171,7 @@ describe("getLatestICCCModRelease", () => {
     nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     await nexus.getLatestICCCModRelease({});
-    expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`);
+    expectConsole(consoleLogSpy, `Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`);
   });
 
   test("announces mod release when cached mod data UID differs from latest mod data UID", async () => {
@@ -178,7 +181,7 @@ describe("getLatestICCCModRelease", () => {
     nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true)
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(newModData);
     await nexus.getLatestICCCModRelease({});
-    expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Cached ICCC mod data uid (${validModData.uid}) does not match current ICCC mod data's (${newModData.uid}). Sending announcement in #${validDiscordChannel.name}`);
+    expectConsole(consoleLogSpy, `Cached ICCC mod data uid (${validModData.uid}) does not match current ICCC mod data's (${newModData.uid}). Sending announcement in #${validDiscordChannel.name}`);
   });
 
   test("skips sending Discord message if identical notification message already exists", async () => {
@@ -187,7 +190,7 @@ describe("getLatestICCCModRelease", () => {
     nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
     nexus.getDuplicateMessage = jest.fn().mockResolvedValueOnce({ content: expectedMessageContent });
     await nexus.getLatestICCCModRelease({});
-    expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${READABLE_TIMESTAMP}. Terminating sending mod notification`);
+    expectConsole(consoleLogSpy, `Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${READABLE_TIMESTAMP}. Terminating sending mod notification`);
   });
 
   test("sends Discord notification message when no duplicate message is found", async () => {
@@ -203,6 +206,7 @@ describe("getLatestICCCModRelease", () => {
     let error = new Error("Test error");
     nexus.getLatestModData = jest.fn().mockRejectedValueOnce(error);
     await nexus.getLatestICCCModRelease({});
+    //todo make a helper method for logs for errors
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining("Error latest nexus mod release of ICCC"),
       error
@@ -222,10 +226,11 @@ describe("getLatestModData", () => {
       cleanUpTestEnvironment();
     });
 
+    //todo possibly refactor this into test.each
   test("returns null and logs error if mod data retrieval returns null", async () => {
     nexus.getModData = jest.fn().mockResolvedValueOnce(null);
     const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Error getting latest build nexus Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}. Unable to extract data`);
+    expectConsole(consoleErrorSpy, `Error getting latest build nexus Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}. Unable to extract data`);
     expect(result).toBeNull();
   });
 
@@ -233,7 +238,7 @@ describe("getLatestModData", () => {
     const modData = {};
     nexus.getModData = jest.fn().mockResolvedValueOnce(modData);
     const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. object did not have required "files" property.`);
+    expectConsole(consoleErrorSpy, `There was a problem reading mod data with id ${process.env.ICCC_NEXUS_MOD_ID}. object did not have required "files" property.`);
     expect(result).toBeNull();
   });
 
@@ -242,8 +247,7 @@ describe("getLatestModData", () => {
     nexus.getModData = jest.fn().mockResolvedValueOnce({});
     nexus.validateModData = jest.fn().mockReturnValueOnce(response);
     const result = await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    
-    expect(consoleErrorSpy).toHaveBeenCalledWith(response.reason);
+    expectConsole(consoleErrorSpy, response.reason, false);
     expect(result).toBeNull();
   })
 
@@ -324,10 +328,7 @@ describe("getModData", () => {
         });
 
     const result = await nexus.getModData(process.env.ICCC_NEXUS_MOD_ID);
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `[${MOCK_TIMESTAMP}] Error getting Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}. Status 400 Mock Error`
-    );
+    expectConsole(consoleErrorSpy, `Error getting Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}. Status 400 Mock Error`);
     expect(result).toBeNull();
     });
 
@@ -362,13 +363,13 @@ describe("getAllModsFromSpecificUser", () => {
     test("logs an error if getAllTrackedMods returns null", async () => {
         nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce(null);
         await nexus.getAllModsFromSpecificUser();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable tracked stardew mod ids. Terminating new mod release checks.`);
+        expectConsole(consoleErrorSpy, `Unable tracked stardew mod ids. Terminating new mod release checks.`);
     })
 
     test("logs an error if getAllTrackedMods returns an empty array", async () => {
         nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([]);
         await nexus.getAllModsFromSpecificUser();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Filtered mod IDs array is empty; no new Stardew Mods were found.`);
+        expectConsole(consoleErrorSpy, `Filtered mod IDs array is empty; no new Stardew Mods were found.`);
     })
 
     test("logs an error if getLatestModData returns null for a tracked mod", async () => {
@@ -376,7 +377,7 @@ describe("getAllModsFromSpecificUser", () => {
         nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
         await nexus.getAllModsFromSpecificUser();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Unable to get mod data of id ${id}. Not sending message.`);
+        expectConsole(consoleErrorSpy, `Unable to get mod data of id ${id}. Not sending message.`);
     })
 
     test("logs an error if unable to get the discord channel for notifications", async () => { 
@@ -385,7 +386,7 @@ describe("getAllModsFromSpecificUser", () => {
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
         nexus.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
         await nexus.getAllModsFromSpecificUser();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`);
+        expectConsole(consoleErrorSpy, `There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`);
     })
 
     test("logs that the mod has already been announced and skips re-announcing", async () => {
@@ -398,7 +399,7 @@ describe("getAllModsFromSpecificUser", () => {
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
         nexus.getDuplicateMessage = jest.fn().mockResolvedValue(duplicatedMessage);
         await nexus.getAllModsFromSpecificUser()
-        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicatedMessage.createdTimestamp)}. Terminating sending mod notification`);
+        expectConsole(consoleLogSpy, `Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicatedMessage.createdTimestamp)}. Terminating sending mod notification`);
     })
 
     test("logs that an announcement for the mod has been made", async () => {
@@ -408,7 +409,7 @@ describe("getAllModsFromSpecificUser", () => {
         nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
         nexus.getDuplicateMessage = jest.fn().mockResolvedValue(undefined);
         await nexus.getAllModsFromSpecificUser()
-        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Successfully sent announcement for mod id ${id}`);
+        expectConsole(consoleLogSpy, `Successfully sent announcement for mod id ${id}`);
     })
 
     test("logs an error if an exception is caught", async () => {
@@ -440,7 +441,7 @@ describe("getAllTrackedMods", () => {
         const response = {status: "test status", statusText: "statusText"}
         fetchSpy.mockResolvedValue(response);
         const result = await nexus.getAllTrackedMods();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Error getting tracked mods. Status ${response.status} ${response.statusText}`);
+        expectConsole(consoleErrorSpy, `Error getting tracked mods. Status ${response.status} ${response.statusText}`);
         expect(result).toBe(null)
 
   })
@@ -449,7 +450,7 @@ describe("getAllTrackedMods", () => {
         const response = {status: 200, statusText: "statusText", json: async () => []}
         fetchSpy.mockResolvedValue(response);
         const result = await nexus.getAllTrackedMods();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Filtered tracked mods list is empty. Unable to get ids.`);
+        expectConsole(consoleErrorSpy, `Filtered tracked mods list is empty. Unable to get ids.`);
         expect(result).toBe(null)
   })
 
@@ -458,7 +459,7 @@ describe("getAllTrackedMods", () => {
         const response = {status: 200, statusText: "statusText", json: async () => [{domain_name: "stardewvalley", mod_id: Number(mod_id)}]}
         fetchSpy.mockResolvedValue(response);
         const result = await nexus.getAllTrackedMods();
-        expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] Successfully got all stardew valley tracked mods ids.`);
+        expectConsole(consoleLogSpy, `Successfully got all stardew valley tracked mods ids.`);
         expect(result.length).toBe(1);
         expect.arrayContaining(mod_id)
   })
