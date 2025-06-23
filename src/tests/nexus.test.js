@@ -1,11 +1,12 @@
 //todo remove redundant code
 //todo remove/optimized duplicate code
+//todo put after each in the own helper function
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
 
 
-// Utils mocked globally (does not depend on nexus)
+// Utils mocked globally
 jest.mock("../utils", () => ({
   getTimeStamp: jest.fn(() => MOCK_TIMESTAMP),
   convertIsoToDiscordTimestamp: jest.fn(() => DISCORD_TIMESTAMP),
@@ -25,16 +26,23 @@ const validModData = {
 
 const validDiscordChannel = { name: "test-channel" };
 
-const setupNexusWithConsoleSpies = () => {
-  jest.resetModules();
 
-    // Setup spies BEFORE importing tested modules
-  const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-  const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+const setupTestEnvironment = () => {
+  // Clear module cache
+    jest.resetModules();
 
-    // Import module AFTER spies are setup
-  const nexus = require("../apiCalls/nexus");
-  return { consoleErrorSpy, consoleLogSpy, nexus };
+    // Mock node-fetch BEFORE requiring the module
+    jest.mock("node-fetch");
+    const fetchSpy = require("node-fetch"); // this is now the mocked fetch
+
+    const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    // AFTER mocks
+    const nexus = require("../apiCalls/nexus");
+    const discord = require("../apiCalls/discordCalls");
+
+    return { fetchSpy, consoleLogSpy, consoleErrorSpy, nexus, discord };
 }
 
 beforeAll(() => {
@@ -54,11 +62,7 @@ describe("getDiscordChannel", () => {
     let discord;
 
   beforeEach(() => {
-    ({ consoleErrorSpy, consoleLogSpy, nexus } = setupNexusWithConsoleSpies());
-
-    // Import modules AFTER spies are setup
-    discord = require("../apiCalls/discordCalls");
-
+     ({ consoleLogSpy, consoleErrorSpy, nexus, discord } = setupTestEnvironment());
     // Clear cached data for each test
     nexus._setCachedICCCNotifsChannel(null);
     nexus._setCachedICCCModData(null);
@@ -100,10 +104,7 @@ describe("getLatestICCCModRelease", () => {
   let discord;
 
   beforeEach(() => {
-    ({ consoleErrorSpy, consoleLogSpy, nexus } = setupNexusWithConsoleSpies());
-
-    // Import modules AFTER spies are setup
-    discord = require("../apiCalls/discordCalls");
+     ({ consoleLogSpy, consoleErrorSpy, nexus, discord } = setupTestEnvironment());
 
     // Clear cached data for each test
     nexus._setCachedICCCNotifsChannel(null);
@@ -197,12 +198,7 @@ describe("getLatestModData", () => {
   let nexus;
 
     beforeEach(() => {
-            jest.resetModules(); // Clear module cache
-            // Mock node-fetch BEFORE requiring the module
-            jest.mock("node-fetch");
-            fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
-            consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-            nexus = require("../apiCalls/nexus"); // AFTER mocks
+        ({ consoleErrorSpy, nexus } = setupTestEnvironment());
     });
 
     afterEach(() => {
@@ -250,15 +246,9 @@ describe("getLatestModData", () => {
 describe("validateModData", () => {
     const id = "id";
     const errorMessage = `There was a problem reading mod data with id ${id}.`;
+    let nexus;
     beforeEach(() => {
-        jest.resetModules(); // Clear module cache
-
-        // Mock node-fetch BEFORE requiring the module
-        jest.mock("node-fetch");
-
-        fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
-
-        nexus = require("../apiCalls/nexus"); // AFTER mocks
+        ({ nexus } = setupTestEnvironment());
     });
 
     afterEach(() => {
@@ -313,7 +303,7 @@ describe("validateModData", () => {
 
     test("handles unexpected error from getTimeStamp gracefully", () => {
         const utils = require("../utils");
-        let error = new Error("Mocked timestamp error")
+        let error = new Error("test error")
         utils.getTimeStamp.mockImplementationOnce(() => {
             throw error;
         });
@@ -336,16 +326,7 @@ describe("getModData", () => {
   let consoleErrorSpy;
   let nexus;
     beforeEach(() => {
-        jest.resetModules(); // Clear module cache
-
-        // Mock node-fetch BEFORE requiring the module
-        jest.mock("node-fetch");
-
-        fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
-
-        consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-        nexus = require("../apiCalls/nexus"); // AFTER mocks
+        ({ fetchSpy, consoleErrorSpy, nexus } = setupTestEnvironment());
     });
 
     afterEach(() => {
@@ -354,7 +335,6 @@ describe("getModData", () => {
     });
 
     test("returns null and logs error if API response status is not successful (2xx)", async () => {
-
         fetchSpy.mockResolvedValue({
             ok: false,
             status: 400,
@@ -390,22 +370,9 @@ describe("getAllModsFromSpecificUser", () => {
     let consoleErrorSpy;
     let consoleLogSpy;
     let nexus;
-    let discord;
 
     beforeEach(() => {
-        jest.resetModules(); // Clear module cache
-
-        // Mock node-fetch BEFORE requiring the module
-        jest.mock("node-fetch");
-
-        fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
-
-        consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-        consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-        nexus = require("../apiCalls/nexus"); // AFTER mocks
-        discord = require("../apiCalls/discordCalls");
-
+        ({ consoleLogSpy, consoleErrorSpy, nexus } = setupTestEnvironment());
     });
 
     afterEach(() => {
@@ -479,22 +446,13 @@ describe("getAllModsFromSpecificUser", () => {
 
 
 describe("getAllTrackedMods", () => {
+  let fetchSpy;
   let consoleErrorSpy;
   let consoleLogSpy;
   let nexus;
 
   beforeEach(() => {
-      jest.resetModules(); // Clear module cache
-
-      // Mock node-fetch BEFORE requiring the module
-      jest.mock("node-fetch");
-
-      fetchSpy = require("node-fetch"); // <-- this is now the mocked fetch
-
-      consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-      consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-      nexus = require("../apiCalls/nexus"); // AFTER mocks
+     ({ fetchSpy, consoleLogSpy, consoleErrorSpy, nexus, discord } = setupTestEnvironment());
   });
 
   afterEach(() => {

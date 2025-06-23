@@ -1,6 +1,3 @@
-//todo remove redundant code
-//todo remove/optimized duplicate code
-//todo change the order of the function so the one called in index.js appear first. Make it following functions are sorted in order of how they are called. Ex: a function that is called in another function cannot not be above the function it calls
 require("dotenv").config();
 const fetch = require("node-fetch");
 const utils = require("../utils")
@@ -227,7 +224,6 @@ const getDiscordChannel = async (client, cachedChannelObject, channelId, channel
 };
 
 const getDuplicateMessage = async (channelObject, messageContent) => {
-    //todo what if there's an error with getting the old messages?
     const oldMessages = await discord.getDiscordMessages(channelObject);
     return oldMessages.find(m => m.content === messageContent);
 };
@@ -350,6 +346,7 @@ const validateModData = (modData, id) => {
     }
 }
 
+// Test utilities
 const _setCachedICCCModData = (val) => cachedModData = val;
 const _setCachedICCCNotifsChannel = (val) => cachedICCCNotifsChannel = val;
 const _setCachedNexusModReleaseChannel = (val) => cachedNexusModReleaseChannel = val;
