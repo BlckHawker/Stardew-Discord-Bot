@@ -1,6 +1,8 @@
 //todo remove redundant code
 //todo remove/optimized duplicate code
 //todo put after each in the own helper function
+//todo make error a global constant (then can get rid of it as a parameter in helper function)
+//todo refactorValidModData to be global
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
@@ -26,6 +28,8 @@ const getMockModData = (uid = 123, name = "Test Mod") => ({
 
 const validDiscordChannel = { name: "test-channel" };
 
+const error = new Error("Test Error");
+
 const setupTestEnvironment = () => {
   // Clear module cache
     jest.resetModules();
@@ -49,8 +53,16 @@ const cleanUpTestEnvironment = () => {
   jest.clearAllMocks(); // Clear all mocks/spies
 }
 
+//todo possible combine these functions into one (or have one use the other)
 const expectConsole = (console, message, includeTimestamp = true) => {
   expect(console).toHaveBeenCalledWith(`${includeTimestamp ? `[${MOCK_TIMESTAMP}] ` : ""}${message}`);
+}
+
+const expectConsoleError = (consoleErrorSpy, message) => {
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining(message),
+      error
+    )
 }
 
 beforeAll(() => {
@@ -203,14 +215,9 @@ describe("getLatestICCCModRelease", () => {
   });
 
   test("handles unexpected errors gracefully during mod release retrieval", async () => {
-    let error = new Error("Test error");
     nexus.getLatestModData = jest.fn().mockRejectedValueOnce(error);
     await nexus.getLatestICCCModRelease({});
-    //todo make a helper method for logs for errors
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Error latest nexus mod release of ICCC"),
-      error
-    );
+    expectConsoleError(consoleErrorSpy, "Error latest nexus mod release of ICCC")
   });
 });
 
@@ -253,13 +260,9 @@ describe("getLatestModData", () => {
 
 
   test("logs and handles errors thrown during mod data validation", async () => {
-    let error = new Error("Test error");
     nexus.getModData = jest.fn().mockRejectedValueOnce(error);
     await nexus.getLatestModData(process.env.ICCC_NEXUS_MOD_ID);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(`Error getting latest build nexus Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}:`),
-      error
-    );
+    expectConsoleError(consoleErrorSpy, `Error getting latest build nexus Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}:`)
   });
 });
 
@@ -296,13 +299,12 @@ describe("validateModData", () => {
 
     test("handles unexpected errors gracefully", () => {
         const utils = require("../utils");
-        let error = new Error("test error")
         utils.getTimeStamp.mockImplementationOnce(() => {
             throw error;
         });
         const result = nexus.validateModData({}, id);
         expect(result.valid).toBe(false)
-        expect(result.reason).toBe(`[${utils.getTimeStamp()}] Error validating mod data of id ${id}: ${error}`);
+        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] Error validating mod data of id ${id}: ${error}`);
     })
 })
 
@@ -334,13 +336,9 @@ describe("getModData", () => {
 
 
     test("logs and returns null when fetch throws an error", async () => {
-        const error = new Error("Test error");
         fetchSpy.mockRejectedValueOnce(error);
         const result = await nexus.getModData(process.env.ICCC_NEXUS_MOD_ID);
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`Error getting Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}:`),
-        error
-        );
+        expectConsoleError(consoleErrorSpy, `Error getting Stardew mod with id ${process.env.ICCC_NEXUS_MOD_ID}:`)
         expect(result).toBeNull();
     })
 })
@@ -413,13 +411,9 @@ describe("getAllModsFromSpecificUser", () => {
     })
 
     test("logs an error if an exception is caught", async () => {
-        let error = new Error("Test error");
         nexus.getAllTrackedMods = jest.fn().mockRejectedValueOnce(error);
         await nexus.getAllModsFromSpecificUser()
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          expect.stringContaining(`[${MOCK_TIMESTAMP}] Error checking to see if there are any new Stardew mod releases`),
-          error
-        );
+        expectConsoleError(consoleErrorSpy, `Error checking to see if there are any new Stardew mod releases`)
     })
 })
 
@@ -465,13 +459,9 @@ describe("getAllTrackedMods", () => {
   })
 
   test("logs an error and returns null if an exception is thrown during fetch", async () => {
-    let error = new Error("error test")
     fetchSpy.mockRejectedValueOnce(error)
     const result = await nexus.getAllTrackedMods()
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Error getting tracked mods:"),
-      error
-    );
+    expectConsoleError(consoleErrorSpy, "Error getting tracked mods:")
     expect(result).toBe(null)
   })
 })
