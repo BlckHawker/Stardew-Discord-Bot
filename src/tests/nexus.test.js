@@ -23,7 +23,7 @@ const getMockModData = (uid = 123, name = "Test Mod") => ({
   category_name: "MAIN",
 });
 
-  const validModData = getMockModData();
+const validModData = getMockModData();
 
 const validDiscordChannel = { name: "test-channel" };
 
@@ -52,17 +52,20 @@ const cleanUpTestEnvironment = () => {
   jest.clearAllMocks(); // Clear all mocks/spies
 }
 
-//todo possible combine these functions into one (or have one use the other)
-const expectConsole = (console, message, includeTimestamp = true) => {
-  expect(console).toHaveBeenCalledWith(`${includeTimestamp ? `[${MOCK_TIMESTAMP}] ` : ""}${message}`);
+const expectConsole = (console, message, includeTimestamp = true, isError = false) => {
+  const formattedMessage = `${includeTimestamp ? `[${MOCK_TIMESTAMP}] ` : ""}${message}`
+
+  if (isError) {
+    expect(console.mock.calls[0][1]).toBe(error);
+    expect(console).toHaveBeenCalledWith(formattedMessage, error);
+  } else {
+    expect(console).toHaveBeenCalledWith(formattedMessage);
+  }
 }
 
 const expectConsoleError = (consoleErrorSpy, message) => {
-  expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(message),
-      error
-    )
-}
+  expectConsole(consoleErrorSpy, message, true, true)
+};
 
 beforeAll(() => {
   Object.assign(process.env, {
@@ -78,7 +81,6 @@ describe("getDiscordChannel", () => {
     let nexus;
     let discord;
     const channelId = "channelId";
-
 
   beforeEach(() => {
      ({ consoleLogSpy, consoleErrorSpy, nexus, discord } = setupTestEnvironment());
@@ -229,7 +231,7 @@ describe("getLatestICCCModRelease", () => {
   test("handles unexpected errors gracefully during mod release retrieval", async () => {
     nexus.getLatestModData = jest.fn().mockRejectedValueOnce(error);
     await nexus.getLatestICCCModRelease({});
-    expectConsoleError(consoleErrorSpy, "Error latest nexus mod release of ICCC")
+    expectConsoleError(consoleErrorSpy, "Error latest nexus mod release of ICCC.")
   });
 });
 
