@@ -255,52 +255,26 @@ describe("validateModData", () => {
       cleanUpTestEnvironment();
     });
 
-    test("returns invalid when modData is null", () => {
-        const modData = null;
+    test.each([
+      ["modData is null", null, `Error getting latest build nexus Stardew mod with id ${id}. Unable to extract data`],
+      ["modData missing \"files\" property", {}, `${errorMessage} object did not have required "files" property.`],
+      ["\"files\" array is empty", {files: []}, `${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`],
+      ["file object missing \"category_name\"", {files: [{}]}, `${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`],
+      ["file has invalid \"category_name\"", {files: [{category_name: "not valid"}]}, `${errorMessage} At least one of the "category_name" properties is not "ARCHIVED", "MAIN", "OLD_VERSION", nor "OPTIONAL". Found "not valid".`],
+      ["no \"MAIN\" category file present", {files: [{category_name: "OLD_VERSION"}]}, `${errorMessage} There were 0 files that had the "category_name" property with the value "MAIN". Expected 1.`],
+    ])("returns invalid when %s", (_, modData, expectedReason) => {
+      const result = nexus.validateModData(modData, id);
+      expect(result.valid).toBe(false);
+      expect(result.reason).toEqual(`[${MOCK_TIMESTAMP}] ${expectedReason}`);
+    });
+
+    test("returns valid for properly structured modData with exactly one 'MAIN' category file", () => {
+        const modData = {files: [{category_name: "MAIN"}]};
         const result = nexus.validateModData(modData, id);
-        expect(result.valid).toBe(false)
-        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] Error getting latest build nexus Stardew mod with id ${id}. Unable to extract data`);
+        expect(result.valid).toBe(true)
     })
 
-    test("returns invalid when modData does not contain a 'files' property", () => {
-        const modData = {};
-        const result = nexus.validateModData(modData, id);
-        expect(result.valid).toBe(false)
-        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} object did not have required "files" property.`);
-    })
-
-    test("returns invalid when 'files' array exists but is empty", () => {
-        const modData = {files: []};
-        const result = nexus.validateModData(modData, id);
-        expect(result.valid).toBe(false)
-        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`);
-    })
-
-    test("returns invalid when an object inside 'files' lacks 'category_name' property", () => {
-        const modData = {files: [{}]};
-        const result = nexus.validateModData(modData, id);
-        expect(result.valid).toBe(false)
-        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`);
-    })
-
-    test("returns invalid when 'category_name' property has an unexpected value", () => {
-        const category_name = "not valid";
-        const modData = {files: [{category_name}]};
-        const result = nexus.validateModData(modData, id);
-        expect(result.valid).toBe(false)
-        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} At least one of the "category_name" properties is not "ARCHIVED", "MAIN", "OLD_VERSION", nor "OPTIONAL". Found "${category_name}".`);
-    })
-
-    test("returns invalid when the number of 'MAIN' category files is not exactly one", () => {
-        const category_name = "OLD_VERSION";
-        const modData = {files: [{category_name}]};
-        const result = nexus.validateModData(modData, id);
-        const mainFiles = modData.files.filter(f => f.category_name === "MAIN");
-        expect(result.valid).toBe(false)
-        expect(result.reason).toBe(`[${MOCK_TIMESTAMP}] ${errorMessage} There were ${mainFiles.length} files that had the "category_name" property with the value "MAIN". Expected 1.`);
-    })
-
-    test("handles unexpected error from getTimeStamp gracefully", () => {
+    test("handles unexpected errors gracefully", () => {
         const utils = require("../utils");
         let error = new Error("test error")
         utils.getTimeStamp.mockImplementationOnce(() => {
@@ -310,13 +284,6 @@ describe("validateModData", () => {
         expect(result.valid).toBe(false)
         expect(result.reason).toBe(`[${utils.getTimeStamp()}] Error validating mod data of id ${id}: ${error}`);
     })
-
-    test("returns valid for properly structured modData with exactly one 'MAIN' category file", () => {
-        const modData = {files: [{category_name: "MAIN"}]};
-        const result = nexus.validateModData(modData, id);
-        expect(result.valid).toBe(true)
-    })
-
 })
 
 
