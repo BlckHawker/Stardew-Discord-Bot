@@ -93,48 +93,52 @@ describe("getDiscordChannel", () => {
     cleanUpTestEnvironment();
   });
 
-    test.each([
-      [
-        "logs that the channel was found in cache and returns it", 
-        validDiscordChannel, 
-        null, 
-        "log", 
-        `Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`, 
-        validDiscordChannel
-      ],
-      [
-        "logs an error and returns null if fetched channel returns null", 
-        null, 
-        jest.fn().mockResolvedValueOnce(null), 
-        "error", 
-        `Error getting channel with ID ${channelId}`, 
-        null
-      ],
-      [
-        "fetches and returns the channel if not cached",
-        null,
-        jest.fn().mockResolvedValueOnce(validDiscordChannel),
-        "log",
-        `Fetched and cached channel ${validDiscordChannel.name}`,
-        validDiscordChannel
-      ]
-    ])("%s", 
-      async (_, cachedChannel, fetchMock, logType, expectedMessage, expectedResult) => {
-    if (fetchMock) {
-      discord.getDiscordChannel = fetchMock;
+const cases = [
+  [
+    "logs that the channel was found in cache and returns it",
+    {
+      cachedChannel: validDiscordChannel,
+      fetchMock: null,
+      log: "log",
+      expectedMessage: `Notifis channel (#${validDiscordChannel.name}) already cached. Skipping fetch`,
+      expectedResult: validDiscordChannel
     }
- 
-    const result = await nexus.getDiscordChannel(null, cachedChannel, channelId, validDiscordChannel.name);
-
-    if (logType === "log") {
-      expect(consoleLogSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] ${expectedMessage}`);
-    } 
-    else if (logType === "error") {
-      expect(consoleErrorSpy).toHaveBeenCalledWith(`[${MOCK_TIMESTAMP}] ${expectedMessage}`);
+  ],
+  [
+    "logs an error and returns null if fetched channel returns null",
+    {
+      cachedChannel: null,
+      fetchMock: jest.fn().mockResolvedValueOnce(null),
+      log: "error",
+      expectedMessage: `Error getting channel with ID ${channelId}`,
+      expectedResult: null
     }
+  ],
+  [
+    "fetches and returns the channel if not cached",
+    {
+      cachedChannel: null,
+      fetchMock: jest.fn().mockResolvedValueOnce(validDiscordChannel),
+      log: "log",
+      expectedMessage: `Fetched and cached channel ${validDiscordChannel.name}`,
+      expectedResult: validDiscordChannel
+    }
+  ]
+];
 
-    expect(result).toBe(expectedResult);
-  })
+
+test.each(cases)("%s", async (_description, { cachedChannel, fetchMock, log, expectedMessage, expectedResult }) => {
+  if (fetchMock) {
+    discord.getDiscordChannel = fetchMock;
+  }
+
+  const result = await nexus.getDiscordChannel(null, cachedChannel, channelId, validDiscordChannel.name);
+  const console = log === "log" ? consoleLogSpy : consoleErrorSpy;
+
+  expectConsole(console, expectedMessage);
+  expect(result).toBe(expectedResult);
+});
+
 })
 
 describe("getLatestICCCModRelease", () => {
@@ -154,50 +158,50 @@ describe("getLatestICCCModRelease", () => {
     cleanUpTestEnvironment();
   });
 
-  test.each([
-    [
-      "logs error and aborts when mod data retrieval fails",
-    () => { nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null); },
-    "error",
-    "Unable to get ICCC Nexus mod data. Not sending message..."
-    ],
-    [
-      "logs error and aborts when discord channel retrieval fails",
-      () => {
-      nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-      nexus.getDiscordChannel = jest.fn().mockResolvedValueOnce(null);
-    },
-    "error",
-    "There was an error getting ICCC nexus release notifs channel. Terminating sending message"
-    ],
-    [
-      "announces mod release when no previous mod data is cached",
-      () => {
-      nexus._setCachedICCCNotifsChannel(validDiscordChannel);
-      nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-      nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true);
-    },
-    "log",
-    `No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`
-    ],
-    [
-      "does not announce when cached mod data matches latest mod data UID",
-      () => {
-      nexus._setCachedICCCNotifsChannel(validDiscordChannel);
-      nexus._setCachedICCCModData(validModData);
-      nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true);
-      nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-    },
-    "log",
-    `Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`
-    ]
-  ])
+  const cases = [
+  [
+    "logs error and aborts when mod data retrieval fails",
+    {
+      setup: () => {
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
+      },
+      type: "error",
+      expectedMessage: "Unable to get ICCC Nexus mod data. Not sending message..."
+    }
+  ],
+  [
+    "announces mod release when no previous mod data is cached",
+    {
+      setup: () => {
+        nexus._setCachedICCCNotifsChannel(validDiscordChannel);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+        nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true);
+      },
+      type: "log",
+      expectedMessage: `No ICCC mod data cached. Sending announcement in #${validDiscordChannel.name}`
+    }
+  ],
+  [
+    "does not announce when cached mod data matches latest mod data UID",
+    {
+      setup: () => {
+        nexus._setCachedICCCNotifsChannel(validDiscordChannel);
+        nexus._setCachedICCCModData(validModData);
+        nexus.getDuplicateMessage = jest.fn().mockResolvedValue(true);
+        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+      },
+      type: "log",
+      expectedMessage: `Cached ICCC mod data uid matches current ICCC mod data's (${validModData.uid}). No need to send duplicate announcement`
+    }
+  ]
+];
 
-  ("%s", async (_, setupFn, logType, expectedMsg) => {
-  setupFn();
+  test.each(cases)
+    ("%s", async (_description, {setup, type, expectedMessage}) => {
+  setup();
   await nexus.getLatestICCCModRelease({});
-  const spy = logType === "error" ? consoleErrorSpy : consoleLogSpy;
-  expectConsole(spy, expectedMsg);
+  const spy = type === "error" ? consoleErrorSpy : consoleLogSpy;
+  expectConsole(spy, expectedMessage);
 });
 
   test("announces mod release when cached mod data UID differs from latest mod data UID", async () => {
@@ -248,27 +252,28 @@ describe("getLatestModData", () => {
       cleanUpTestEnvironment();
     });
 
-  test.each([
-    [
-      "mod data retrieval returns null", 
-      null, 
-      undefined, 
-      `[${MOCK_TIMESTAMP}] Error getting latest build nexus Stardew mod with id ${modId}. Unable to extract data`
-    ],
-    [
-      "mod data is missing the 'files' property",
-      {},
-      undefined,
-      `[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${modId}. object did not have required "files" property.`
-    ],
-    [
-      "mod data is considered invalid",
-      {},
-      { valid: false, reason: "test fail reason" },
-      "test fail reason"
+    const cases = [
+      {
+        description: "mod data retrieval returns null",
+        modData: null,
+        validationResponse: undefined,
+        expectedMessage: `[${MOCK_TIMESTAMP}] Error getting latest build nexus Stardew mod with id ${modId}. Unable to extract data`,
+      },
+      {
+         description: "mod data is missing the 'files' property",
+      modData: {},
+      validationResponse: undefined,
+      expectedMessage: `[${MOCK_TIMESTAMP}] There was a problem reading mod data with id ${modId}. object did not have required "files" property.`
+      },
+      {
+        description: "mod data is missing the 'files' property",
+        modData: {},
+        validationResponse: { valid: false, reason: "test fail reason" },
+        expectedMessage: "test fail reason"
+      }
     ]
 
-  ])("returns null and logs error when %s", async (_, modData, validationResponse, expectedMessage) => {
+    test.each(cases)("returns null and logs error when %s", async ({modData, validationResponse, expectedMessage}) => {
     nexus.getModData = jest.fn().mockResolvedValueOnce(modData);
     if (validationResponse !== undefined) {
       nexus.validateModData = jest.fn().mockReturnValueOnce(validationResponse);
@@ -298,18 +303,46 @@ describe("validateModData", () => {
       cleanUpTestEnvironment();
     });
 
-    test.each([
-      ["modData is null", null, `Error getting latest build nexus Stardew mod with id ${id}. Unable to extract data`],
-      ["modData missing \"files\" property", {}, `${errorMessage} object did not have required "files" property.`],
-      ["\"files\" array is empty", {files: []}, `${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`],
-      ["file object missing \"category_name\"", {files: [{}]}, `${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`],
-      ["file has invalid \"category_name\"", {files: [{category_name: "not valid"}]}, `${errorMessage} At least one of the "category_name" properties is not "ARCHIVED", "MAIN", "OLD_VERSION", nor "OPTIONAL". Found "not valid".`],
-      ["no \"MAIN\" category file present", {files: [{category_name: "OLD_VERSION"}]}, `${errorMessage} There were 0 files that had the "category_name" property with the value "MAIN". Expected 1.`],
-    ])("returns invalid when %s", (_, modData, expectedReason) => {
-      const result = nexus.validateModData(modData, id);
-      expect(result.valid).toBe(false);
-      expect(result.reason).toEqual(`[${MOCK_TIMESTAMP}] ${expectedReason}`);
-    });
+      const cases = [
+    {
+      description: "modData is null",
+      modData: null,
+      expectedReason: `Error getting latest build nexus Stardew mod with id ${id}. Unable to extract data`
+    },
+    {
+      description: 'modData missing "files" property',
+      modData: {},
+      expectedReason: `${errorMessage} object did not have required "files" property.`
+    },
+    {
+      description: '"files" array is empty',
+      modData: { files: [] },
+      expectedReason: `${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`
+    },
+    {
+      description: 'file object missing "category_name"',
+      modData: { files: [{}] },
+      expectedReason: `${errorMessage} At least one of the object within the "files" property does not have "category_name" property.`
+    },
+    {
+      description: 'file has invalid "category_name"',
+      modData: { files: [{ category_name: "not valid" }] },
+      expectedReason: `${errorMessage} At least one of the "category_name" properties is not "ARCHIVED", "MAIN", "OLD_VERSION", nor "OPTIONAL". Found "not valid".`
+    },
+    {
+      description: 'no "MAIN" category file present',
+      modData: { files: [{ category_name: "OLD_VERSION" }] },
+      expectedReason: `${errorMessage} There were 0 files that had the "category_name" property with the value "MAIN". Expected 1.`
+    }
+  ];
+
+  test.each(cases)("returns invalid when %s", ({ modData, expectedReason }) => {
+    const result = nexus.validateModData(modData, id);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toEqual(`[${MOCK_TIMESTAMP}] ${expectedReason}`);
+  });
+
+
 
     test("returns valid for properly structured modData with exactly one 'MAIN' category file", () => {
         const modData = {files: [{category_name: "MAIN"}]};
@@ -464,23 +497,31 @@ describe("getAllTrackedMods", () => {
       cleanUpTestEnvironment();
   });
 
-  test("logs an error and returns null if the response has a non-2xx status", async () => {
-        const response = {status: "test status", statusText: "statusText"}
-        fetchSpy.mockResolvedValue(response);
-        const result = await nexus.getAllTrackedMods();
-        expectConsole(consoleErrorSpy, `Error getting tracked mods. Status ${response.status} ${response.statusText}`);
-        expect(result).toBe(null)
+  const cases = [
+    [
+      {
+        description: "response has a non-2xx status",
+        response: { status: "test status", statusText: "statusText" },
+        expectedMessage: "Error getting tracked mods. Status test status statusText"
+      }
+    ],
+    [
+      {
+        description: "filtered data array is empty",
+        response: {status: 200, statusText: "statusText", json: async () => []},
+        expectedMessage: "Filtered tracked mods list is empty. Unable to get ids."      
+      }
+    ]
+  ]
 
-  })
+  test.each(cases)
+  (`logs an error and returns null if the %s`, async ({response, expectedMessage}) => {
+  fetchSpy.mockResolvedValue(response);
+  const result = await nexus.getAllTrackedMods();
+  expectConsole(consoleErrorSpy, expectedMessage);
+  expect(result).toBe(null);
+});
   
-  test("logs an error and returns null if the filtered data array is empty", async () => {
-        const response = {status: 200, statusText: "statusText", json: async () => []}
-        fetchSpy.mockResolvedValue(response);
-        const result = await nexus.getAllTrackedMods();
-        expectConsole(consoleErrorSpy, `Filtered tracked mods list is empty. Unable to get ids.`);
-        expect(result).toBe(null)
-  })
-
   test("returns an array of mod IDs if tracked Stardew Valley mods are found", async () => {
     const mod_id = 1;
         const response = {status: 200, statusText: "statusText", json: async () => [{domain_name: "stardewvalley", mod_id: Number(mod_id)}]}
