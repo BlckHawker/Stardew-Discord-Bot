@@ -28,13 +28,6 @@ const client = new Discord.Client({
     ]
 })
 
-client.on("messageCreate", (message) => {
-    if(message.author.id === process.env.CLIENT_ID)
-        return;
-
-    nexus.getAllModsFromSpecificUser(client);
-})
-
 // When the bot first initializes
 client.on("ready", (c) => {
     console.log(`${c.user.tag} is online`);
