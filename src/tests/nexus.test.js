@@ -1,5 +1,3 @@
-//todo remove redundant code
-//todo remove/optimized duplicate code
 const MOCK_TIMESTAMP = "MOCKED_TIMESTAMP"
 const DISCORD_TIMESTAMP = "DISCORD_TIMESTAMP"
 const READABLE_TIMESTAMP = "READABLE"
@@ -341,8 +339,6 @@ describe("validateModData", () => {
     expect(result.valid).toBe(false);
     expect(result.reason).toEqual(`[${MOCK_TIMESTAMP}] ${expectedReason}`);
   });
-
-
 
     test("returns valid for properly structured modData with exactly one 'MAIN' category file", () => {
         const modData = {files: [{category_name: "MAIN"}]};
