@@ -366,6 +366,7 @@ describe("getAllModsFromSpecificUser", () => {
     let consoleErrorSpy;
     let consoleLogSpy;
     let nexus;
+    const id = 1;
 
     beforeEach(() => {
         ({ consoleLogSpy, consoleErrorSpy, nexus } = setupTestEnvironment());
@@ -376,56 +377,70 @@ describe("getAllModsFromSpecificUser", () => {
         nexus._setCachedNexusModReleaseChannel(null);
     });
 
-    test("logs an error if getAllTrackedMods returns null", async () => {
-        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce(null);
-        await nexus.getAllModsFromSpecificUser();
-        expectConsole(consoleErrorSpy, `Unable tracked stardew mod ids. Terminating new mod release checks.`);
-    })
+    const cases = [
+        {
+          description: "logs an error if getAllTrackedMods returns null",
+          setup: () => { nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce(null); },
+          type: "error",
+          expectedMessage: "Unable tracked stardew mod ids. Terminating new mod release checks."
+        },
+        {
+          description: "logs an error when tracked mods is empty array",
+          setup: () => {
+            nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([]);
+          },
+          type: "error",
+          expectedMessage: "Filtered mod IDs array is empty; no new Stardew Mods were found."
+        },
+        {
+          description: "logs an error if getLatestModData returns null for a tracked mod",
+          setup: () => {
+            nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+            nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
+          },
+          type: "error",
+          expectedMessage: `Unable to get mod data of id ${id}. Not sending message.`
+        },
+        {
+          description: "logs an error if unable to get the discord channel for notifications",
+          setup: () => {
+            nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+            nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+            nexus.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
+          },
+          type: "error",
+          expectedMessage: `There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`
+        },
+        {
+          description: "logs that the mod has already been announced and skips re-announcing",
+          setup: () => {
+            const content = `@here\nA Stardew mod has released on Hawker's page!\n Title: **${validModData.name}**\nRelease Date: ${DISCORD_TIMESTAMP}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
+            nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
+            nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+            nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+            nexus.getDuplicateMessage = jest.fn().mockResolvedValue({content, createdTimestamp: 0 });
+          },
+          type: "log",
+          expectedMessage: `Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${READABLE_TIMESTAMP}. Terminating sending mod notification`
+        },
+        {
+          description: "logs that an announcement for the mod has been made",
+          setup: () => {
+            nexus._setCachedNexusModReleaseChannel(validDiscordChannel);
+            nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
+            nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
+            nexus.getDuplicateMessage = jest.fn().mockResolvedValue(undefined);
+          },
+          type: "log",
+          expectedMessage: `Successfully sent announcement for mod id ${id}`
+        }
+    ]
 
-    test("logs an error if getAllTrackedMods returns an empty array", async () => {
-        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([]);
-        await nexus.getAllModsFromSpecificUser();
-        expectConsole(consoleErrorSpy, `Filtered mod IDs array is empty; no new Stardew Mods were found.`);
-    })
-
-    test("logs an error if getLatestModData returns null for a tracked mod", async () => {
-        const id = 1;
-        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
-        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(null);
-        await nexus.getAllModsFromSpecificUser();
-        expectConsole(consoleErrorSpy, `Unable to get mod data of id ${id}. Not sending message.`);
-    })
-
-    test("logs an error if unable to get the discord channel for notifications", async () => { 
-        const id = 1;
-        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
-        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        nexus.getDiscordChannel = jest.fn().mockResolvedValueOnce(null)
-        await nexus.getAllModsFromSpecificUser();
-        expectConsole(consoleErrorSpy, `There was an error getting nexus mod release notifs channel. Terminating sending message for mod id ${id}`);
-    })
-
-    test("logs that the mod has already been announced and skips re-announcing", async () => {
-        const id = 1;
-        const utils = require("../utils");
-        const content = `@here\nA Stardew mod has released on Hawker's page!\n Title: **${validModData.name}**\nRelease Date: ${utils.convertIsoToDiscordTimestamp(validModData.uploaded_time)}!\nhttps://www.nexusmods.com/stardewvalley/mods/${id}`
-        const duplicatedMessage = {content, createdTimestamp: 0 };
-        nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
-        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
-        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        nexus.getDuplicateMessage = jest.fn().mockResolvedValue(duplicatedMessage);
-        await nexus.getAllModsFromSpecificUser()
-        expectConsole(consoleLogSpy, `Mod (uid ${validModData.uid}) has already been announced in #${validDiscordChannel.name} at ${utils.convertUnixTimestampToReadableTimestamp(duplicatedMessage.createdTimestamp)}. Terminating sending mod notification`);
-    })
-
-    test("logs that an announcement for the mod has been made", async () => {
-        const id = 1;
-        nexus._setCachedNexusModReleaseChannel(validDiscordChannel)
-        nexus.getAllTrackedMods = jest.fn().mockResolvedValueOnce([id]);
-        nexus.getLatestModData = jest.fn().mockResolvedValueOnce(validModData);
-        nexus.getDuplicateMessage = jest.fn().mockResolvedValue(undefined);
-        await nexus.getAllModsFromSpecificUser()
-        expectConsole(consoleLogSpy, `Successfully sent announcement for mod id ${id}`);
+    test.each(cases)("$description", async({ setup, type, expectedMessage }) => {
+      setup();
+      await nexus.getAllModsFromSpecificUser();
+      const console = type === "log" ? consoleLogSpy : consoleErrorSpy;
+      expectConsole(console, expectedMessage);
     })
 
     test("logs an error if an exception is caught", async () => {
