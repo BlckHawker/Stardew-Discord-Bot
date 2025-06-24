@@ -4,6 +4,7 @@ const ICCCGithub = require("./apiCalls/ICCCGithub.js");
 const cron = require('cron');
 const youtube = require("./apiCalls/youtube.js");
 const twitch = require("./apiCalls/twitch.js")
+const nexus = require("./apiCalls/nexus.js")
 
 
 
@@ -31,8 +32,7 @@ const client = new Discord.Client({
 client.on("ready", (c) => {
     console.log(`${c.user.tag} is online`);
 
-
-    // every hour, check if there is a new ICC beta release
+    // every hour, check if there is a new ICC beta release on github
     const ICCCBetaTestReleaseJob = new cron.CronJob('0 */1 * * *', () => {
         ICCCGithub.getLatestICCCBetaRelease(client);
     });
@@ -47,9 +47,21 @@ client.on("ready", (c) => {
         twitch.sendLatestStreamMessage(client);
     });
 
+    //every hour, heck if there is a new ICC release on nexus
+    const ICCCReleaseJob = new cron.CronJob('0 */1 * * *', () => {
+        nexus.getLatestICCCModRelease(client);
+    });
+
+    // every hour, check if there is a new mod released on Hawker's nexus account
+    const nexusReleaseJob = new cron.CronJob('0 */1 * * *', () => {
+        nexus.getAllModsFromSpecificUser(client);
+    });
+
     ICCCBetaTestReleaseJob.start();
     youtubeRelease.start();
     twitchJob.start();
+    ICCCReleaseJob.start();
+    nexusReleaseJob.start();
 });
 
 client.login(process.env.DISCORD_TOKEN);

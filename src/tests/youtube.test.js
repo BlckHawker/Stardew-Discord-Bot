@@ -1,6 +1,3 @@
-test("", () => {
-  expect(true).toBeTruthy()
-})
 
 require("dotenv").config();
 const fetch = require("node-fetch");
