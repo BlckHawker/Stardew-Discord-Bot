@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 ### Added
 - **Changelog.md**
-- **Nexus mods Checks**
+- **PROJECT_PLAN.md**
+- **Nexus Mods Checks**
   - Sends notification for updates of the Instant Community Center mod
   - Sends notification for when new stardew mods release from Hawker's page
 ---
