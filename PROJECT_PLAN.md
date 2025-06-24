@@ -121,11 +121,11 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
         - [x] A message describing the release “A new version of ICCC has been released on Nexus (**version number in bold letters**).”
 
 #### 4.2 - New Stardew Mods Release* Acceptance Criteria
-- [ ] The bot checks Hawker’s profile to see if they uploaded a new mod
-    - [ ] If the mod is related to Stardew Valley, the bot will send a message in “nexus-mod-release-notifs”
-    - [ ] The message will include:
-        - [ ] The link to the mod on Nexus
-        - [ ] A custom message like “Hawker has released a new Stardew mod on Nexus”
+- [x] The bot checks Hawker’s profile to see if they uploaded a new mod
+    - [x] If the mod is related to Stardew Valley, the bot will send a message in “nexus-mod-release-notifs”
+    - [x] The message will include:
+        - [x] The link to the mod on Nexus
+        - [x] A custom message like “Hawker has released a new Stardew mod on Nexus”
 
 ---
 
