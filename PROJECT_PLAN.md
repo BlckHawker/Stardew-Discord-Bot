@@ -11,6 +11,8 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - Ensure timely pings to users when new content (streams, videos, mods) is published.
 - Maintain a reliable and always-on bot presence to ensure no notifications are missed.
 - Provide a safe environment to test new features without disrupting the live server.
+- Maintain high code quality through ESLint rules, test coverage, and file documentation
+- Improve Discord bot interaction through message handling, caching, and verification.
 
 ---
 
@@ -20,17 +22,24 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - The bot shall detect and ping users when a new beta build is available on GitHub.
 - The bot shall send a notification when a new version of the mod is released on Nexus Mods.
 - The bot shall send a notification when a new Stardew mod is released on Nexus Mods.
+- The bot shall support deleting large numbers of Discord messages within any (or all) channels at once.
+- The bot shall support GitHub PR integration with templates and CI tests.
+- The bot shall support test coverage tracking and enforce consistent testing structure
+- The bot shall verify and cache Discord channel references to reduce API usage
 
 ---
 
 ## 4. Non-Functional Requirements
 - The bot must ensure at least 99.9% uptime (except for scheduled maintenance).
 - The bot should have a staging (test) version for verifying new features before deploying them on the main version.
+- Code should adhere to ESLint rules and include header/purpose comments
+- A project board should be organized to track current tasks and priorities
 
 ---
 
 ## 5. Technology Stack
 - **Backend**: Discord.js (Node.js)
+- **Testing**: Jest for unit testing
 - **Hosting**: Local Laptop
 
 ---
@@ -164,8 +173,184 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
             - [x] If it is a bug fix, there must be steps on how to reproduce the bug, the expected outcome, and the current outcome
             - [x] If it is an additional feature, there must be steps on how to get the feature to work
             - [x] Pictures / gifs are optional, but preferred
-
 ---
+### Epic 6: GitHub and Webkooks & CL Workflow
+| Name | Description | **User Story**                                                                                                                                                                         
+| **Name**                 | **Description** | **User Story**                                                                                                                                                                                                                                             |
+| ------------------------ | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 6.1 - GitHub Integration | Send updates to Discord channels when any tracked GitHub repository changes.  | As a contributor to one of Hawker’s mods, I want to receive Discord notifications whenever activity occurs on the associated GitHub repository (such as commits, issues, or pull requests), so I can stay up to date and avoid working on outdated code. |
+| 6.2 - PR Templates       | Provide standardized pull request templates for features and bug fixes.      | As a developer, I want standardized pull request templates for features and bug fixes, so I can provide clear, consistent information about my changes and help reviewers understand, test, and approve my work efficiently.                                                                                                  |                                            
+#### 6.1 - GitHub Integration Acceptance Criteria
+- [ ] For each of Hawker's Stardew mod repositories, there will be a respective discord channel where the GitHub Webhook will send messages to when anything changes on that repository
+- [ ] The following mods will get a Discord channel
+  - [ ] Instant Community Center Cheat (ICCC)
+  - [ ] Perfectionist Interactive Guide
 
-## 7. Future Features Ideas
-- None at the moment
+#### 6.2 - GitHub Integration Acceptance Criteria
+- [ ] On GitHub, there will PR templates for bugs and new features.
+- [ ] The new features template will ask for the following:
+   - [ ] Very specifc steps on how to use the feature. With a note stating the more details included, the better to understand the purpose of the PR.
+- [ ] The bugs template will ask for the following:
+  - [ ] Very specifc steps on how to reporduce the bug. With a note stating the more details included, the better to understand the purpose of the PR.
+  - [ ] The expected behavoir from the repoduced steps
+  - [ ] The actual behavior from the reproduced steps
+- [ ] Both templates will ask for the following:
+  - [ ]  Summary - A breif description of what the PR entails
+  - [ ] Additional notes - Any additional notes the user thinks it's good for other devs to note. Such very rare edge cases. A feature being half completed ecetera (optinal)
+  - [ ] Media: - Include screenshots or GIFs if available (optional)
+  - [ ] A checklist that will be for the user to verify that they have implemented so their code follows standards
+    - [ ] Verify all functions (either created or modified) have headers that explain their purpose, the paramters' type, paraamter's purpose, and return value of function
+    - [ ] Unit tests that cover new/modified code
+    - [ ] Code formatted to match project's standards
+    - [ ] No spelling mistakes within code (including comments)
+- [ ] In the readme, there will be a reference to both of these templates.
+  - [ ] new feature template
+  - [ ] bugs template
+- [ ] In the readme, there will be example templates the user can see to understand how a PR should be documented
+  - [ ] new feature template
+  - [ ] bugs template
+---
+### Epic 7: Logging & Console Output
+| Name  | Description | User Story  |
+|-----------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 7.1 - Console and Discord Logging | Enable bot logs to be saved and forwarded to a Discord channel.  | As a maintainer, I want the bot to send its console logs to a dedicated discord server so I can more easily see the bot's status, and more quickly fix it if the bot runs into an error. As a maintainer, I want the bot to send its console logs to a dedicated discord server so I can more easily see the bot's status, and more quickly fix it if the bot runs into an error. |
+| 7.2 - Logging Utilities  | Provide reusable logging helpers.  | As a contributor, I want helper log functions so I am not repeating the same code frequently. |
+#### 7.1 - Console and Discord Logging Acceptance Criteria
+- [ ] There will be a logging function that sends logs to a dedicated Discord channel
+- [ ] Anything that is printed to the console will also be printed to a local text file
+   - [ ] The content of the text field will be sent to a dedicated Discord channel at 12:00:00 AM (timezone depending on the server. At the time of writing, it will be EDT/EST depending on daylight savings.)
+   - [ ] A message will be sent pinging the channel of the text file
+   - [ ] The text file will be named "log.YYY-MM-DD HH-MM-SS.txt" with the letters being date and time the log was uploaded
+  - [ ] The text file is cleared when one of the following happens
+   - [ ] The bot is initalized
+   - [ ] The bot sends the file to Discord
+- [ ] If possible, console and discord logs will be color coded:
+  - [ ] Anything logs errors will be red
+  - [ ] Any console logs that state something happen successfully will be white
+  - [ ] Any console logs that state something failed, but is not a console error will be yellow
+
+#### 7.2 - Logging Utilities Acceptance Criteria
+- [ ] Create a helper method to format console error messages.
+- [ ] Create a helper method to format console log messages.
+---
+### Epic 8: Testing & Code Coverage
+| Name                               | Description | User Story                                                                                                                                                                                             |
+|------------------------------------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 8.1 - Comprehensive Unit Testing   | Ensure all logic is covered by unit tests. | As a developer, I want every function (including utility functions) to have at least one unit test, so that I can ensure the proper behavior of my code                                                |
+| 8.2 - Automated Coverage Reports   | Generate test coverage reports via CI and scripts.  | As a developer, I want Jest to generate code coverage reports both manually and automatically, so that I can review test completeness on-demand and as part of the PR process.                         |
+| 8.3 - Quality Checks for PRs       | Block merges that fail coverage or testing standards.  | As a maintainer, I want PRs to be automatically blocked from merging if they do not meet test coverage and quality standards, so that the codebase maintains a high level of tested and reliable code. |
+| 8.4 - Standardize Function Exports | Ensure functions are exported consistently.  | As a developer, I want all function calls within the same file to use `module.exports`, so that functions can be imported, mocked, and tested individually without ambiguity.                          |
+| 8.5 - Eliminate Redundant Mocks    | Refactor duplicate mock logic in tests.  | As a developer, I want to refactor tests to remove redundant fetch mocks, so that my test suite is easier to maintain.                                                                                 |
+
+#### 8.1 - Comprehensive Unit Testing Acceptance Criteria
+- [ ] Every function and utility in the codebase has an associated unit test.
+- [ ] No function is left without at least one test case.
+
+#### 8.2 - Automated Coverage Reports Acceptance Criteria
+- [ ] A script exists that generates a Jest coverage report when run manually.
+- [ ] The CI/CD pipeline automatically generates and attaches a Jest coverage report when an active PR is created or updated.
+- [ ] The Jest tool is used to display the code coverage metrics.
+
+#### 8.3 - Quality Checks for PRs Acceptance Criteria
+- [ ] If a PR lacks of the following requirements, it cannot be merged until the issues are resolved
+  - [ ] The CI/CD process checks that each PR has at least 90% test coverage.
+  - [ ] The merge is automatically blocked if any tests fail.
+
+#### 8.4 - Standardize Function Exports Acceptance Criteria
+- [ ] All internal function calls in a file are refactored to use module.exports.
+- [ ] Functions are individually importable and mockable within test files.
+
+#### 8.5 - Eliminate Redundant Mocks Acceptance Criteria
+- [ ] Any tests that require fetch mocking must use a single, shared configuration. Only functions that actually make HTTP request calls should reference this centralized mock.
+- [ ] Remove all fetch mocks from tests for functions that do not perform network calls. Each test should only include fetching behavior if the function under test explicitly depends on it.
+---
+### Epic 9: ESLint & Style Consistency
+| Name                | Description | User Story                                                                                                                                                                                       |
+|---------------------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 9.1 - Linting Rules | Enforce style and documentation via ESLint.  | As a developer, I want to enforce code style and documentation consistency using ESLint, so that all contributions follow agreed-upon standards and are automatically validated in pull requests |
+#### 9.1 - Linting Rules Acceptance Criteria
+- [ ] Implement ESLint rules for style consistency.
+ - [ ] Enforce function header comments via linting.
+ - [ ] Detect and flag `// TODO comments` via ESLint.
+ - [ ] Enforce purpose comments at the top of all files.
+ - [ ] Restrict line length to 80 characters max.
+ - [ ] Verify spelling.
+ - [ ] If any of the above is false, block pr merge.
+- [ ] These checks are ran automatically when an open PR is created/updated.
+---
+### Epic 10: Nexus Logic Improvements
+| Name                      | Description | User Story                                                                                                                                                             |
+|---------------------------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 10.1 - Code Refactoring   | Refactor the Nexus logic for maintainability.  | As a developer, I want to refactor the ICCC Nexus mod release logic so that the Nexus logic becomes more modular, maintainable, and reusable for other mods.           |
+| 10.2 - Edge Case Handling | Handle edge cases in Nexus mod logic.  | As a developer, I want to ensure edge cases in the Nexus logic are handled so that the system handles unexpected scenarios gracefully and maintains reliable behavior. |
+#### 10.1 - Code Refactoring Acceptance Criteria
+- [ ] Refactor ICCC Nexus mod release logic into a generic helper to be used by other mods.
+- [ ] Break `nexus.js` into classes/modules like `NexusModFetcher`, `DiscordAnnouncer`, and `CacheHandler`
+#### 10.2 - Edge Case Handling Acceptance Criteria
+- [ ] If there is a duplicate message about a beta release, but not follow up job scheduled, make one.
+- [ ] `nexus.test.js` line 224 "idk why but just setting variables as "ICCC_NEXUS_MOD_ID" causes them to be undefined. possibly need to set ICCC_NEXUS_MOD_ID inside this describe's before each"
+---
+### Epic 11: Discord Message Handling
+| Name                                           | Description | User Story                                                                                                                                                            |
+|------------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 11.1 - Bulk Message Purge                      | Provide a tool to clear all test server messages.  | As a developer, I want a script that can purge all messages across all channels, so I can easily reset my test server.                                                |
+| 11.2 - Message Retrieval                       | Enable complete message history fetching.  | As a developer, I want to implement a method to fetch all messages in a channel, not just the latest 100, so that I can reliably retrieve complete message histories. |
+| 11.3 - Discord Message Fetching Error Handling | Add error-handling around message retrieval.  | As a developer, I want to add error handling when fetching Discord messages in getDiscordMessages, so that the process gracefully handles errors.                      |
+
+#### 11.1 - Bulk Message Purge Acceptance Criteria
+- [ ] Script to purge all messages across all channels
+
+#### 11.2 - Message Retrieval Acceptance Criteria
+- [ ] Implement method to fetch all messages in a channel, not just the latest 100
+
+#### 11.3 - Discord Message Fetching Error Handling Acceptance Criteria
+- [ ] Add error handling when fetching Discord messages in `getDiscordMessages`
+---
+### Epic 12: Channel Caching & Verification
+| Name                             | Description | User Story                                                                                                                                                         |
+|----------------------------------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 12.1 - Caching                   | Cache channel objects to reduce API usage.  | As a developer, I want to cache channel objects so I minimizes the amount of unnecessary network requests.                                                         |
+| 12.2 - Channel Type Verification | Validate channel types and handle failures.  | As a developer, I want to ensure that all Discord channel interactions are wrapped in try-catch blocks, so that the application handles channel errors gracefully. |
+
+#### 12.1 - Caching Accepteance Criteria
+- [ ] Cache channel objects to reduce redundant API calls.
+- [ ] Create helper method to retrieve and verify cached channel objects.
+#### 12.2 - Channel Type Verification Accepteance Criteria
+- [ ] Ensure all Discord channel interactions are wrapped in try-catch blocks.
+- [ ] Add validation that channels are text-based before interacting with them.
+---
+### Epic 13: General Refactoring & Clean-up 
+| Name                              | Description | User Story                                                                                                               |
+|-----------------------------------|-------------|--------------------------------------------------------------------------------------------------------------------------|
+| 13.1 - Code Simplification        | Refactor code for clarity and consistency.  | As a developer, I want to streamline our codebase so that our code remains consistent, maintainable, and reliable.       |
+| 13.2 - Scheduling Cleanup         | Organize cron job timing for easier debugging. | As a developer, I want to refactor cron jobs to run one minute apart so logs for seperate jobs are easier to read.       |
+| 13.3 - Comments and Documentation | Improve documentation across codebase. | As a onboarded member, I want the detailed documentation, so that I have an easier time undertanding the code structure. |
+| 13.4 - Logging Enhancements       | Improve log readability. | As a developer, I want to log channel types by name instead of numeric codes, so that.                                   |
+
+#### 13.1 - Code Simplification Acceptance Criteria
+- [ ] Change `TWITCH_USER_ID` env var to use the Twitch username instead.
+- [ ] Refactor exports to remove test-only exports.
+- [ ] Add helper function to verify if a resolved promise status code starts with 2.
+#### 13.2 - Scheduling Cleanup Acceptance Criteria
+- [ ] Refactor cron jobs to run one minute apart (using a loop). Limit to 60 max.
+  - [ ] If more than 60 jobs are given, log an error stating:
+    - [ ] The number of jobs given
+    - [ ] Only 60 jobs will be done
+#### 13.3 - Comments and Documentation Acceptance Criteria
+- [ ] Add header comments to all functions.
+- [ ] Explain the purpose and editing guidelines of `project_plan.md` and `changelog.md` docs in the README.
+#### 13.4 - Logging Enhancements Acceptance Criteria
+- [ ] Log channel types by name instead of numeric codes.
+---
+### Epic 14: Stream Title Sync
+
+| Name                          | Description | User Story                                                                                                                                                                    |
+|-------------------------------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 14.1 - Stream Message Updates | Update Discord messages when the Twitch stream title changes.  | As a developer, I want to edit the Discord message to reflect the new stream Twitch title when it changes, so that the message always displays the current and correct title. |
+#### 14.1 - Stream Message Updates Acceptance Criteria
+- [ ] If the stream Twitch title changes, edit the message to have the new title
+# 7. Future Features
+- [ ] Add Stardew Valley Expanded compatibility to Instant Commuity Center Cheat mod.
+- [ ] Refactor any strings that are wrapped around backticks but no placeholder information with quotes.
+- [ ] Jest utils functions. To remove similiar/duplicate test functions.
+- [ ] Break other files into `Fetcher`, `CacheHandler`, etc. Possibly making more utils functions that will be used in other files
