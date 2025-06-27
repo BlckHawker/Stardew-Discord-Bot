@@ -384,3 +384,14 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
   - [ ] How PR merging will be blocked if the unit tests fail.
   - [ ] How to redo unit tests actions on GitHub website
   - [ ] How to see test coverage results
+- [ ] Verify no code is
+  - [ ] unused
+  - [ ] assigned but not read
+- [ ] Add coverage folder under gitignore
+- [ ] Verify test file structure is something
+- Where a discord client is created, verify `createClient` in `discord.js` is used. If there are no places for it to exist, delete the function.
+- [ ] Verify all jest mocks are consistent in set up. Possibly add in utils test file.
+- [ ] Create jest template file and add documentation on the layout
+- [ ] In readme, have a section for ESLint rules
+- [ ] Have a ESLint rule for excessive spaces (both vertically and horizontally)
+- [ ] Verify utils.convertIsoToDiscordTimestamp takes in a valid style
