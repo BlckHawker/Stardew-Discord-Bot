@@ -380,3 +380,6 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - [ ] Possibly change utils to be different modules that have more specific functions
 - [ ] Guidelines on how to create an issue. Possibly make a template
 - [ ] Verify that all `main` and `staging` cannot be targeted from a PR
+- [ ] In the read me, talk about GitHub actions:
+  - [ ] How PR merging will be blocked if the unit tests fail.
+  - [ ] How to redo unit tests actions on GitHub website
