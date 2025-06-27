@@ -8,4 +8,5 @@ module.exports = {
       statements: 90,
     },
   },
+  coverageReporters: ["text", "lcov"],
 };
