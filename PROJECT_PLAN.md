@@ -379,3 +379,19 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - [ ] Break other files into `Fetcher`, `CacheHandler`, etc. Possibly making more utils functions that will be used in other files
 - [ ] Possibly change utils to be different modules that have more specific functions
 - [ ] Guidelines on how to create an issue. Possibly make a template
+- [ ] Verify that all `main` and `staging` cannot be targeted from a PR
+- [ ] In the read me, talk about GitHub actions:
+  - [ ] How PR merging will be blocked if the unit tests fail.
+  - [ ] How to redo unit tests actions on GitHub website
+  - [ ] How to see test coverage results
+- [ ] Verify no code is
+  - [ ] unused
+  - [ ] assigned but not read
+- [ ] Add coverage folder under gitignore
+- [ ] Verify test file structure is something
+- Where a discord client is created, verify `createClient` in `discord.js` is used. If there are no places for it to exist, delete the function.
+- [ ] Verify all jest mocks are consistent in set up. Possibly add in utils test file.
+- [ ] Create jest template file and add documentation on the layout
+- [ ] In readme, have a section for ESLint rules
+- [ ] Have a ESLint rule for excessive spaces (both vertically and horizontally)
+- [ ] Verify utils.convertIsoToDiscordTimestamp takes in a valid style
