@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "start": "node .\\src\\index.js",
     "purge": "node .\\src\\dev\\deleteTextChannelMessages.js",
     "viewChannels": "node .\\src\\dev\\viewAvailableChannels.js"

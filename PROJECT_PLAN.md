@@ -383,3 +383,4 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - [ ] In the read me, talk about GitHub actions:
   - [ ] How PR merging will be blocked if the unit tests fail.
   - [ ] How to redo unit tests actions on GitHub website
+  - [ ] How to see test coverage results
