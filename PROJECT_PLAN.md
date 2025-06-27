@@ -379,3 +379,4 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - [ ] Break other files into `Fetcher`, `CacheHandler`, etc. Possibly making more utils functions that will be used in other files
 - [ ] Possibly change utils to be different modules that have more specific functions
 - [ ] Guidelines on how to create an issue. Possibly make a template
+- [ ] Verify that all `main` and `staging` cannot be targeted from a PR
