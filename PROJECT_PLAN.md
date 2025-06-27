@@ -374,8 +374,8 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - [ ] This functionality is abstracted into a shared utility module.
 
 # 7. Backlogged Features
-- [ ] Add Stardew Valley Expanded compatibility to Instant Commuity Center Cheat mod.
 - [ ] Refactor any strings that are wrapped around backticks but no placeholder information with quotes.
-- [ ] Jest utils functions. To remove similiar/duplicate test functions.
+- [ ] Jest utils functions. To remove similar/duplicate test functions.
 - [ ] Break other files into `Fetcher`, `CacheHandler`, etc. Possibly making more utils functions that will be used in other files
 - [ ] Possibly change utils to be different modules that have more specific functions
+- [ ] Guidelines on how to create an issue. Possibly make a template
