@@ -206,9 +206,6 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 - [ ] In the readme, there will be a reference to both of these templates.
   - [ ] new feature template
   - [ ] bugs template
-- [ ] In the readme, there will be example templates the user can see to understand how a PR should be documented
-  - [ ] new feature template
-  - [ ] bugs template
 ---
 ### Epic 7: Logging & Console Output
 | Name  | Description | User Story  |
@@ -349,8 +346,36 @@ The bot will send notifications to appropriate channels when Hawker uploads a vi
 | 14.1 - Stream Message Updates | Update Discord messages when the Twitch stream title changes.  | As a developer, I want to edit the Discord message to reflect the new stream Twitch title when it changes, so that the message always displays the current and correct title. |
 #### 14.1 - Stream Message Updates Acceptance Criteria
 - [ ] If the stream Twitch title changes, edit the message to have the new title
-# 7. Future Features
+---
+### Epic 15: API Rate Limiting and Call Scheduling
+
+| Name                      | Description                                                                  | User Story                                                                                                                                                                  |
+|---------------------------|------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 15.1 - Smart API Throttling | Implement cooldown timers per API to respect rate limits and avoid throttling | As a developer, I want my program to automatically manage cooldowns between API calls, so I avoid hitting the free usage limit and ensure reliable operation over time.    |
+
+#### 15.1 - Smart API Throttling Acceptance Criteria
+
+- [ ] Each of the following services is handled independently with its own cooldown logic:
+  - [ ] YouTube
+  - [ ] Twitch
+  - [ ] Nexus Mods
+  - [ ] GitHub
+
+- [ ] When a function needs to make an API call:
+  - [ ] It calculates the required delay (based on the API's rate-limit window. will be set manually).
+  - [ ] If no timer is set, the call proceeds and a cooldown is initiated.
+  - [ ] If a timer is active, the call is delayed until the cooldown expires.
+  - [ ] Once the timer expires, the next pending call is executed and a new timer is set.
+
+- [ ] Logging:
+  - [ ] If a call is throttled, a message is logged with a reason (e.g., “Delaying GitHub call for 3 seconds due to rate limit”).
+  - [ ] Log includes which API the wait applies to and the time remaining.
+
+- [ ] This functionality is abstracted into a shared utility module.
+
+# 7. Backlogged Features
 - [ ] Add Stardew Valley Expanded compatibility to Instant Commuity Center Cheat mod.
 - [ ] Refactor any strings that are wrapped around backticks but no placeholder information with quotes.
 - [ ] Jest utils functions. To remove similiar/duplicate test functions.
 - [ ] Break other files into `Fetcher`, `CacheHandler`, etc. Possibly making more utils functions that will be used in other files
+- [ ] Possibly change utils to be different modules that have more specific functions
